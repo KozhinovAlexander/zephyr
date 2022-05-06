@@ -1,0 +1,8 @@
+# Private config options for websocket-server sample app
+
+# Copyright (c) 2022 Alexander Kozhinov <ak.alexander.kozhinov@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+mainmenu "Networking websocket-server sample application"
+
+source "Kconfig.zephyr"

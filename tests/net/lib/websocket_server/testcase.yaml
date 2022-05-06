@@ -1,0 +1,9 @@
+common:
+  tags: websocket server testing
+  # depends_on: websocket_server
+tests:
+  net.websocket_server:
+    min_ram: 128
+    # build_only: false
+    platform_allow: native_posix
+    # qemu_x86_64 nucleo_h745zi_q_m7 nucleo_h745zi_q_m4

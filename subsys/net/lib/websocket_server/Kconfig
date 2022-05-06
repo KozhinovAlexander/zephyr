@@ -1,0 +1,54 @@
+# Copyright (c) 2022 Alexander Kozhinov <ak.alexander.kozhinov@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+menuconfig WEBSOCKET_SERVER
+	bool "Websocket server support [EXPERIMENTAL]"
+	select NET_SOCKETS
+	select MBEDTLS
+	select BASE64
+	select EXPERIMENTAL
+	help
+	  Enable Websocket server library.
+
+config WEBSOCKET_SRV_PORT
+	int "Weboscket server listen port"
+	default 80 if !NET_SOCKETS_SOCKOPT_TLS
+	default 443 if NET_SOCKETS_SOCKOPT_TLS
+	help
+	  Weboscket server listen port selector.
+
+config WEBSOCKET_SRV_LISTEN_QUEUE_LEN
+	int "The TCP port listen qeue length for incomming connection requests"
+	default 3
+	help
+	  The TCP port listen qeue length for incomminc connection requests.
+
+config WEBSOCKET_SRV_RCV_BUFF_SIZE
+	int "The websocket server reciving buffer size in bytes"
+	default 1280
+	help
+	  The websocket server reciving buffer size in bytes
+
+config WEBSOCKET_SRV_SND_BUFF_SIZE
+	int "The websocket server sending buffer size in bytes"
+	default 1280
+	help
+	  The websocket server sending buffer size in bytes
+
+config WEBSOCKET_SRV_MAX_CLIENTS
+	int "The maximal number of clients can be accepted by the server"
+	default 3
+	help
+	  The maximal number of clients can be accepted by the server
+
+config WEBSOCKET_SRV_STACK_SIZE
+	int "Defines clients processing threads stack size in bytes"
+	default 2048
+	help
+	  The stack needed for tcp / clients processing threads
+
+module = WEBSOCKET_SRV
+module-dep = LOG
+module-str = Log level for Websocket
+module-help = Sets log level of Websocket server library.
+source "subsys/net/Kconfig.template.log_config.net"

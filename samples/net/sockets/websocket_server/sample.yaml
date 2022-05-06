@@ -1,0 +1,13 @@
+common:
+  harness: net
+  tags: net socket websocket
+  depends_on: netif
+  min_flash: 16
+sample:
+  description: WebSocket Server sample application
+  name: WebSocket Server
+tests:
+  sample.net.sockets.websocket_server.nucleo_h745zi_q:
+    extra_args: OVERLAY_CONFIG="overlay-nucleo_h745zi_q.conf"
+    tags: net
+    platform_allow: nucleo_h745zi_q

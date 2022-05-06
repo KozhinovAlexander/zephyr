@@ -16,6 +16,7 @@ source "subsys/net/lib/tftp/Kconfig"
 source "subsys/net/lib/http/Kconfig"
 
 source "subsys/net/lib/websocket/Kconfig"
+source "subsys/net/lib/websocket_server/Kconfig"
 
 source "subsys/net/lib/lwm2m/Kconfig"
 
