@@ -474,7 +474,7 @@ static void gs_usb_can_tx_thread()
 		ret = usb_write(ep_data[GS_USB_IN_EP_IDX].ep_addr, (const uint8_t*)&hf,
 						sizeof(hf), NULL);
 		if(ret < 0) {
-			LOG_ERR("usb_write failed on ep: %d ret: %d",
+			LOG_ERR("usb_write failed on ep: 0x%x ret: %d",
 					ep_data[GS_USB_IN_EP_IDX].ep_addr, ret);
 			continue;
 		}
@@ -488,6 +488,8 @@ static void gs_usb_can_tx_thread()
 static void gs_usb_ep_out_cb(uint8_t ep, enum usb_dc_ep_cb_status_code ep_status)
 {
 	if(ep != ep_data[GS_USB_OUT_EP_IDX].ep_addr) {
+		LOG_DBG("ep != ep_data[GS_USB_OUT_EP_IDX].ep_addr --> 0x%x != 0x%x",
+				ep, ep_data[GS_USB_OUT_EP_IDX].ep_addr);
 		return;
 	}
 
@@ -536,7 +538,7 @@ static void gs_usb_can_rx_thread()
 		ret = usb_write(ep_data[GS_USB_IN_EP_IDX].ep_addr, (const uint8_t*)&hf,
 						sizeof(hf), NULL);
 		if(ret < 0) {
-			LOG_ERR("usb_write failed on ep: %d ret: %d",
+			LOG_ERR("usb_write failed on ep: 0x%x ret: %d",
 					ep_data[GS_USB_IN_EP_IDX].ep_addr, ret);
 			continue;
 		}
