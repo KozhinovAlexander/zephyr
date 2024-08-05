@@ -17,15 +17,13 @@
 LOG_MODULE_REGISTER(gs_usb, CONFIG_GS_USB_LOG_LEVEL);
 
 
-#define GS_USB_IN_EP_ADDR				0x81
-#define GS_USB_OUT_DUMMY_EP_ADDR		0x01  /* ToDo: replace by DFU or etc.*/
-#define GS_USB_OUT_EP_ADDR				0x02
+#define GS_USB_DEFAULT_IN_EP_ADDR	0x81
+#define GS_USB_DEFAULT_OUT_EP_ADDR	0x02
 
 #define GS_USB_IN_EP_IDX			0
 #define GS_USB_OUT_EP_IDX			1
-#define GS_USB_OUT_DUMMY_EP_IDX		2
 
-#define GS_USB_NUM_USB_ENDPOINTS	3
+#define GS_USB_NUM_USB_ENDPOINTS	2
 
 /**
  * Host format sent by the driver:
@@ -69,7 +67,6 @@ LOG_MODULE_REGISTER(gs_usb, CONFIG_GS_USB_LOG_LEVEL);
 USBD_CLASS_DESCR_DEFINE(primary, 0) struct gs_usb_config {
 	struct usb_if_descriptor if0;
 	struct usb_ep_descriptor if0_in_ep;
-	struct usb_ep_descriptor if0_out_dummy_ep;
 	struct usb_ep_descriptor if0_out_ep;
 } __packed gs_usb_desc = {
 	/* Interface descriptor 0 */
@@ -89,19 +86,7 @@ USBD_CLASS_DESCR_DEFINE(primary, 0) struct gs_usb_config {
 	.if0_in_ep = {
 		.bLength = sizeof(struct usb_ep_descriptor),
 		.bDescriptorType = USB_DESC_ENDPOINT,
-		.bEndpointAddress = GS_USB_IN_EP_ADDR,
-		.bmAttributes = USB_DC_EP_BULK,
-		.wMaxPacketSize = sys_cpu_to_le16(USB_MAX_FS_BULK_MPS),
-		.bInterval = 0x01,
-	},
-
-	/* Data Endpoint OUT *Dummy. It is needed to overcome USB EP address
-		overwriting by Zephyr's USB stack.
-	*/
-	.if0_out_dummy_ep = {
-		.bLength = sizeof(struct usb_ep_descriptor),
-		.bDescriptorType = USB_DESC_ENDPOINT,
-		.bEndpointAddress = GS_USB_OUT_DUMMY_EP_ADDR,
+		.bEndpointAddress = GS_USB_DEFAULT_IN_EP_ADDR,
 		.bmAttributes = USB_DC_EP_BULK,
 		.wMaxPacketSize = sys_cpu_to_le16(USB_MAX_FS_BULK_MPS),
 		.bInterval = 0x01,
@@ -111,7 +96,7 @@ USBD_CLASS_DESCR_DEFINE(primary, 0) struct gs_usb_config {
 	.if0_out_ep = {
 		.bLength = sizeof(struct usb_ep_descriptor),
 		.bDescriptorType = USB_DESC_ENDPOINT,
-		.bEndpointAddress = GS_USB_OUT_EP_ADDR,
+		.bEndpointAddress = GS_USB_DEFAULT_OUT_EP_ADDR,
 		.bmAttributes = USB_DC_EP_BULK,
 		.wMaxPacketSize = sys_cpu_to_le16(USB_MAX_FS_BULK_MPS),
 		.bInterval = 0x01,
@@ -124,15 +109,11 @@ static void gs_usb_ep_in_cb(uint8_t ep, enum usb_dc_ep_cb_status_code ep_status)
 static struct usb_ep_cfg_data ep_data[] = {
 	{
 		.ep_cb = gs_usb_ep_in_cb,
-		.ep_addr = GS_USB_IN_EP_ADDR,
+		.ep_addr = GS_USB_DEFAULT_IN_EP_ADDR,
 	},
 	{
 		.ep_cb = gs_usb_ep_out_cb,
-		.ep_addr = GS_USB_OUT_EP_ADDR,
-	},
-	{
-		.ep_cb = NULL,
-		.ep_addr = GS_USB_OUT_DUMMY_EP_ADDR,
+		.ep_addr = GS_USB_DEFAULT_OUT_EP_ADDR,
 	}
 };
 
@@ -490,9 +471,11 @@ static void gs_usb_can_tx_thread()
 		}
 
 		// Echo sends frame back to host:
-		ret = usb_write(GS_USB_IN_EP_ADDR, (const uint8_t*)&hf, sizeof(hf), NULL);
+		ret = usb_write(ep_data[GS_USB_IN_EP_IDX].ep_addr, (const uint8_t*)&hf,
+						sizeof(hf), NULL);
 		if(ret < 0) {
-			LOG_ERR("usb_write failed on ep: %d", GS_USB_IN_EP_ADDR);
+			LOG_ERR("usb_write failed on ep: %d ret: %d",
+					ep_data[GS_USB_IN_EP_IDX].ep_addr, ret);
 			continue;
 		}
 
@@ -504,7 +487,7 @@ static void gs_usb_can_tx_thread()
 
 static void gs_usb_ep_out_cb(uint8_t ep, enum usb_dc_ep_cb_status_code ep_status)
 {
-	if(ep != GS_USB_OUT_EP_ADDR) {
+	if(ep != ep_data[GS_USB_OUT_EP_IDX].ep_addr) {
 		return;
 	}
 
@@ -550,9 +533,11 @@ static void gs_usb_can_rx_thread()
 			continue;
 		}
 
-		ret = usb_write(GS_USB_IN_EP_ADDR, (const uint8_t*)&hf, sizeof(hf), NULL);
+		ret = usb_write(ep_data[GS_USB_IN_EP_IDX].ep_addr, (const uint8_t*)&hf,
+						sizeof(hf), NULL);
 		if(ret < 0) {
-			LOG_ERR("usb_write failed on ep: %d", GS_USB_IN_EP_ADDR);
+			LOG_ERR("usb_write failed on ep: %d ret: %d",
+					ep_data[GS_USB_IN_EP_IDX].ep_addr, ret);
 			continue;
 		}
 
@@ -874,7 +859,6 @@ static void gs_interface_config(struct usb_desc_header *head,
 									uint8_t bInterfaceNumber)
 {
 	ARG_UNUSED(head);
-
 	gs_usb_desc.if0.bInterfaceNumber = bInterfaceNumber;
 }
 
