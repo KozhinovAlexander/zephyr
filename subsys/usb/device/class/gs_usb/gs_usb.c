@@ -990,6 +990,12 @@ int gs_usb_start(const uint32_t ch)
 		return ret;
 	}
 
+	LOG_DBG("ep_data[GS_USB_IN_EP_IDX].ep_addr: 0x%x", ep_data[GS_USB_IN_EP_IDX].ep_addr);
+	LOG_DBG("ep_data[GS_USB_OUT_EP_IDX].ep_addr: 0x%x", ep_data[GS_USB_OUT_EP_IDX].ep_addr);
+
+	LOG_DBG("gs_usb_desc.if0_in_ep.bEndpointAddress: 0x%x", gs_usb_desc.if0_in_ep.bEndpointAddress);
+	LOG_DBG("gs_usb_desc.if0_out_ep.bEndpointAddress: 0x%x", gs_usb_desc.if0_out_ep.bEndpointAddress);
+
 	return ret;
 }
 
