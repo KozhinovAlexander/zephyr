@@ -1,0 +1,6 @@
+manifest:
+  projects:
+    - name: cannectivity
+      url: https://github.com/KozhinovAlexander/cannectivity.git
+      revision: work
+      path: custom/cannectivity
