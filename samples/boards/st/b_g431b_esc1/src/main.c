@@ -48,8 +48,9 @@ int main(void)
 
 		err = adc_channel_setup_dt(&adc_channels[i]);
 		if (err < 0) {
-			printk("Could not setup channel #%d (%d)\n", i, err);
-			return 0;
+			printk("Could not setup channel #%d (%d)\n",
+				adc_channels[i].channel_id, err);
+			return err;
 		}
 	}
 

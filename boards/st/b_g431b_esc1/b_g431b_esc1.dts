@@ -84,7 +84,7 @@
 };
 
 &die_temp {
-	status = "okay";
+	status = "disabled";
 };
 
 &dma1 {
@@ -118,13 +118,22 @@ stm32_lp_tick_source: &lptim1 {
 };
 
 &adc1 {
-	dmas = <&dmamux1 0 5 (STM32_DMA_PERIPH_RX | STM32_DMA_MEM_16BITS |
-		STM32_DMA_PERIPH_16BITS)>;
+	dmas = <&dmamux1 0 5
+		(
+			STM32_DMA_MODE_CYCLIC |
+			STM32_DMA_PERIPH_TO_MEMORY |
+			STM32_DMA_PERIPH_NO_INC |
+			STM32_DMA_PERIPH_16BITS |
+			STM32_DMA_MEM_INC |
+			STM32_DMA_MEM_16BITS |
+			STM32_DMA_PRIORITY_VERY_HIGH
+		)
+		>;
 	dma-names = "dmamux";
 
 	pinctrl-0 = <&adc1_in1_pa0	/* bus_voltage */
-				 &adc1_in5_pb14	/* temperature */
-				>;
+		     &adc1_in5_pb14	/* temperature */
+		    >;
 	pinctrl-names = "default";
 	st,adc-clock-source = "SYNC";
 	st,adc-prescaler = <4>;
@@ -139,11 +148,11 @@ stm32_lp_tick_source: &lptim1 {
 		zephyr,reference = "ADC_REF_INTERNAL";
 		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
 		zephyr,resolution = <12>;
-		zephyr,vref-mv = <3300>;
+		// zephyr,vref-mv = <3300>;
 	};
 
 	channel@5 {
-		reg = <2>;
+		reg = <5>;
 		zephyr,gain = "ADC_GAIN_1";
 		zephyr,reference = "ADC_REF_INTERNAL";
 		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
