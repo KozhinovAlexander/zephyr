@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2023 STMicroelectronics
- *
+ * Copyright (c) 2025 Alexander Kozhinov <ak.alexander.kozhinov@gmail.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -12,89 +11,129 @@
 
 #define SLEEP_TIME_MS   2000
 
-#if !DT_NODE_EXISTS(DT_PATH(zephyr_user)) || \
-	!DT_NODE_HAS_PROP(DT_PATH(zephyr_user), io_channels)
-#error "No suitable devicetree overlay specified"
-#endif
+#define CONFIG_SEQUENCE_RESOLUTION	12
+#define CONFIG_SEQUENCE_SAMPLES		5
 
-#define DT_SPEC_AND_COMMA(node_id, prop, idx) \
-	ADC_DT_SPEC_GET_BY_IDX(node_id, idx),
+/* ADC node from the devicetree. */
+#define ADC_NODE DT_ALIAS(adc0)
 
-/* Data of ADC io-channels specified in devicetree. */
-static const struct adc_dt_spec adc_channels[] = {
-	DT_FOREACH_PROP_ELEM(DT_PATH(zephyr_user), io_channels,
-			     DT_SPEC_AND_COMMA)
-};
+/* Auxiliary macro to obtain channel vref, if available. */
+#define CHANNEL_VREF(node_id) DT_PROP_OR(node_id, zephyr_vref_mv, 0)
+
+/* Data of ADC device specified in devicetree. */
+static const struct device *adc = DEVICE_DT_GET(ADC_NODE);
+
+/* Data array of ADC channels for the specified ADC. */
+static const struct adc_channel_cfg channel_cfgs[] = {
+	DT_FOREACH_CHILD_SEP(ADC_NODE, ADC_CHANNEL_CFG_DT, (,))};
+
+/* Data array of ADC channel voltage references. */
+static uint32_t vrefs_mv[] = {DT_FOREACH_CHILD_SEP(ADC_NODE, CHANNEL_VREF, (,))};
+
+/* Get the number of channels defined on the DTS. */
+#define CHANNEL_COUNT ARRAY_SIZE(channel_cfgs)
+
+/**
+ * Convert millivolts to temperature
+ *
+ * @param val_mv - a value in millivolts
+ * @return a floating value in celsius
+ */
+static float mv2temp(uint16_t mv)
+{
+	const float slope = 19;  /* mv/celsius */
+	const float temp_offset = 25;  /* celsius*/
+	const uint16_t voltage_offset = 1400;  /* millivolts */
+	return (((float)(mv - voltage_offset))/slope) + temp_offset;
+}
 
 int main(void)
 {
 	int err;
 	uint32_t count = 0;
-	uint16_t buf;
-	struct adc_sequence sequence = {
-		.buffer = &buf,
-		/* buffer size in bytes, not number of samples */
-		.buffer_size = sizeof(buf),
+	uint16_t channel_reading[CONFIG_SEQUENCE_SAMPLES][CHANNEL_COUNT];
+
+	/* Options for the sequence sampling. */
+	const struct adc_sequence_options options = {
+		.extra_samplings = CONFIG_SEQUENCE_SAMPLES - 1,
+		.interval_us = 0,
 	};
 
-	printk("---> start\n");
+	/* Configure the sampling sequence to be made. */
+	struct adc_sequence sequence = {
+		.buffer = channel_reading,
+		/* buffer size in bytes, not number of samples */
+		.buffer_size = sizeof(channel_reading),
+		.resolution = CONFIG_SEQUENCE_RESOLUTION,
+		.options = &options,
+	};
+
+	if (!device_is_ready(adc)) {
+		printf("ADC controller device %s not ready\n", adc->name);
+		return 0;
+	}
 
 	/* Configure channels individually prior to sampling. */
-	for (size_t i = 0U; i < ARRAY_SIZE(adc_channels); i++) {
-		if (!adc_is_ready_dt(&adc_channels[i])) {
-			printk("ADC controller device %s not ready\n", adc_channels[i].dev->name);
+	for (size_t i = 0U; i < CHANNEL_COUNT; i++) {
+		sequence.channels |= BIT(channel_cfgs[i].channel_id);
+		err = adc_channel_setup(adc, &channel_cfgs[i]);
+		if (err < 0) {
+			printf("Could not setup channel #%d (%d)\n", i, err);
 			return 0;
 		}
-
-		err = adc_channel_setup_dt(&adc_channels[i]);
-		if (err < 0) {
-			printk("Could not setup channel #%d (%d)\n",
-				adc_channels[i].channel_id, err);
-			return err;
+		if (channel_cfgs[i].reference == ADC_REF_INTERNAL) {
+			vrefs_mv[i] = adc_ref_internal(adc);
 		}
 	}
 
-	printk("Device ready\n");
+#ifndef CONFIG_COVERAGE
+	while (1) {
+#else
+	for (int k = 0; k < 10; k++) {
+#endif
+		printf("ADC sequence reading [%u]:\n", count++);
+		k_msleep(SLEEP_TIME_MS);
 
-	while (true) {
-		printk("ADC reading[%u]:\n", count++);
-		for (size_t i = 0U; i < ARRAY_SIZE(adc_channels); i++) {
+		err = adc_read(adc, &sequence);
+		if (err < 0) {
+			printf("Could not read (%d)\n", err);
+			continue;
+		}
+
+		for (size_t channel_index = 0U; channel_index < CHANNEL_COUNT; channel_index++) {
 			int32_t val_mv;
 
-			printk("- %s, channel %d: ",
-			       adc_channels[i].dev->name,
-			       adc_channels[i].channel_id);
+			printf("- %s, channel %" PRId32 ", %" PRId32 " sequence samples:\n",
+			       adc->name, channel_cfgs[channel_index].channel_id,
+			       CONFIG_SEQUENCE_SAMPLES);
+			for (size_t sample_index = 0U; sample_index < CONFIG_SEQUENCE_SAMPLES;
+			     sample_index++) {
 
-			(void)adc_sequence_init_dt(&adc_channels[i], &sequence);
+				val_mv = channel_reading[sample_index][channel_index];
 
-			err = adc_read_dt(&adc_channels[i], &sequence);
-			if (err < 0) {
-				printk("Could not read (%d)\n", err);
-				continue;
-			}
+				printf("- - %" PRId32, val_mv);
+				err = adc_raw_to_millivolts(vrefs_mv[channel_index],
+							    channel_cfgs[channel_index].gain,
+							    CONFIG_SEQUENCE_RESOLUTION, &val_mv);
 
-			/*
-			 * If using differential mode, the 16 bit value
-			 * in the ADC sample buffer should be a signed 2's
-			 * complement value.
-			 */
-			if (adc_channels[i].channel_cfg.differential) {
-				val_mv = (int32_t)((int16_t)buf);
-			} else {
-				val_mv = (int32_t)buf;
-			}
-			printk("%"PRId32, val_mv);
-			err = adc_raw_to_millivolts_dt(&adc_channels[i],
-						       &val_mv);
-			/* conversion to mV may not be supported, skip if not */
-			if (err < 0) {
-				printk(" (value in mV not available)\n");
-			} else {
-				printk(" = %"PRId32" mV\n", val_mv);
+				/* conversion to mV may not be supported, skip if not */
+				if ((err < 0) || vrefs_mv[channel_index] == 0) {
+					printf(" (value in mV not available)\n");
+				} else {
+					switch(channel_cfgs[channel_index].channel_id)
+				{
+					case 5:
+						printk(" = %d mV (%.2f °C)\n",
+							val_mv, mv2temp(val_mv));
+						break;
+					default:
+						printk(" = %d mV\n", val_mv);
+						break;
+				}
+				}
 			}
 		}
-
-		k_msleep(SLEEP_TIME_MS);
 	}
+
 	return 0;
 }

@@ -50,8 +50,8 @@
 	aliases {
 		led0 = &red_status_led;
 		sw0 = &button;
-		die-temp0 = &die_temp;
 		watchdog0 = &iwdg;
+		adc0 = &adc1;
 	};
 };
 
@@ -81,10 +81,6 @@
 
 &iwdg {
 	status = "okay";
-};
-
-&die_temp {
-	status = "disabled";
 };
 
 &dma1 {
@@ -131,31 +127,35 @@ stm32_lp_tick_source: &lptim1 {
 		>;
 	dma-names = "dmamux";
 
-	pinctrl-0 = <&adc1_in1_pa0	/* bus_voltage */
-		     &adc1_in5_pb14	/* temperature */
-		    >;
+	pinctrl-0 = <
+		&adc1_in1_pa0	/* bus_voltage */
+		&adc1_in5_pb14	/* temperature */
+		>;
 	pinctrl-names = "default";
 	st,adc-clock-source = "SYNC";
 	st,adc-prescaler = <4>;
-	status = "okay";
+	st,adc-oversampler = "OVERSAMPLER_MINIMAL";
 
 	#address-cells = <1>;
 	#size-cells = <0>;
+
+	status = "okay";
 
 	channel@1 {
 		reg = <1>;
 		zephyr,gain = "ADC_GAIN_1";
 		zephyr,reference = "ADC_REF_INTERNAL";
-		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_TICKS, 48)>;
 		zephyr,resolution = <12>;
-		// zephyr,vref-mv = <3300>;
+		zephyr,vref-mv = <3300>;
 	};
 
 	channel@5 {
 		reg = <5>;
 		zephyr,gain = "ADC_GAIN_1";
 		zephyr,reference = "ADC_REF_INTERNAL";
-		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_TICKS, 93)>;
 		zephyr,resolution = <12>;
+		zephyr,vref-mv = <3300>;
 	};
 };
