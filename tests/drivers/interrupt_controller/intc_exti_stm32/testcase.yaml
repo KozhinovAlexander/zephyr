@@ -16,3 +16,4 @@ tests:
     platform_allow:
       - nucleo_h745zi_q/stm32h745xx/m7
       - nucleo_h745zi_q/stm32h745xx/m4
+      - b_g431b_esc1/stm32g431xx
