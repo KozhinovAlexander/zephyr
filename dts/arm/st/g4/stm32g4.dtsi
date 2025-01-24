@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2021 The Chromium OS Authors
  * Copyright (c) 2019 Richard Osterloh <richard.osterloh@gmail.com>
+ * Copyright (c) 2024 Alexander Kozhinov <ak.alexander.kozhinov@gmail.com>
  * Copyright (c) 2024 STMicroelectronics
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -13,8 +14,10 @@
 #include <zephyr/dt-bindings/gpio/gpio.h>
 #include <zephyr/dt-bindings/pwm/pwm.h>
 #include <zephyr/dt-bindings/adc/adc.h>
+#include <zephyr/dt-bindings/comp/comp.h>
 #include <zephyr/dt-bindings/pwm/stm32_pwm.h>
 #include <zephyr/dt-bindings/dma/stm32_dma.h>
+#include <zephyr/dt-bindings/comp/stm32_comp.h>
 #include <zephyr/dt-bindings/adc/stm32l4_adc.h>
 #include <zephyr/dt-bindings/reset/stm32g4_l4_5_reset.h>
 #include <freq.h>
@@ -660,6 +663,50 @@
 			reg = <0x4000a000 0x400>;
 			clocks = <&rcc STM32_CLOCK(APB1, 4U)>;
 			interrupts = <63 0>;
+			status = "disabled";
+		};
+
+		comp1: comparator@40010200 {
+			compatible = "st,stm32-comp";
+			reg = <0x40010200 0x4>;
+			interrupts = <64 0>;
+			st,exti-line = <21>;
+			st,blank-sel = "NONE";
+			positive-input = "IN0";
+			negative-input = "VREF_INT";
+			status = "disabled";
+		};
+
+		comp2: comparator@40010204 {
+			compatible = "st,stm32-comp";
+			reg = <0x40010204 0x4>;
+			interrupts = <64 0>;
+			st,exti-line = <22>;
+			st,blank-sel = "NONE";
+			positive-input = "IN0";
+			negative-input = "VREF_INT";
+			status = "disabled";
+		};
+
+		comp3: comparator@40010208 {
+			compatible = "st,stm32-comp";
+			reg = <0x40010208 0x4>;
+			interrupts = <64 0>;
+			st,exti-line = <29>;
+			st,blank-sel = "NONE";
+			positive-input = "IN0";
+			negative-input = "VREF_INT";
+			status = "disabled";
+		};
+
+		comp4: comparator@4001020c {
+			compatible = "st,stm32-comp";
+			reg = <0x4001020c 0x4>;
+			interrupts = <65 0>;
+			st,exti-line = <30>;
+			st,blank-sel = "NONE";
+			positive-input = "IN0";
+			negative-input = "VREF_INT";
 			status = "disabled";
 		};
 	};
