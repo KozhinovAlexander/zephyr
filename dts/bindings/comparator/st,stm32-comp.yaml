@@ -1,0 +1,159 @@
+# Copyright (c) 2025 Alexander Kozhinov <ak.alexander.kozhinov@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  STM32 Comparator
+
+  The following example displays the minimum node layout:
+
+    comp1: comparator@deadbeef {
+        compatible = "st,stm32-comp";
+        reg = <0xdeadbeef 0x4>;
+        interrupts = <0 0>;
+        status = "disabled";
+    };
+
+  Enabling the comparator node requires setting the minimum default
+  configuration of the comparator. This includes selecting the
+  positive and negative inputs, and routing them using pinctrl:
+
+    &pinctrl {
+        comp1_default: comp1_default {
+            ...
+        };
+    };
+
+    &comp1 {
+        status = "okay";
+        pinctrl-0 = <&comp1_default>;
+        pinctrl-names = "default";
+
+        positive-input = "IN0";
+        negative-input = "IN1";
+    };
+
+compatible: "st,stm32-comp"
+
+include:
+  - base.yaml
+  - pinctrl-device.yaml
+
+properties:
+  interrupts:
+    required: true
+
+  reg:
+    required: true
+
+  hysteresis:
+    type: string
+    enum:
+      - NONE
+      - 10mV
+      - 20mV
+      - 30mV
+      - 40mV
+      - 50mV
+      - 60mV
+      - 70mV
+    default: NONE
+
+  invert-output:
+    type: string
+    enum:
+      - NON_INVERTED
+      - INVERTED
+    default: NON_INVERTED
+
+  st,exti-line:
+    type: int
+    description: |
+      Number of the Extended Interrupts and Event Controller (EXTI) interrupt
+      line connected to the COMPx event.
+      Not required, since COMPx interrupt could be routed directly to Nested
+      Vectored Interrupt Controller (NVIC).
+
+  st,lock-enable:
+    type: boolean
+
+  st,blank-sel:
+    type: string
+    enum:
+      - NONE
+      - TIM1_OC5_COMP1
+      - TIM1_OC5_COMP2
+      - TIM1_OC5_COMP3
+      - TIM1_OC5_COMP4
+      - TIM1_OC5_COMP5
+      - TIM1_OC5_COMP6
+      - TIM1_OC5_COMP7
+      - TIM2_OC3_COMP1
+      - TIM2_OC3_COMP2
+      - TIM2_OC3_COMP5
+      - TIM2_OC4_COMP3
+      - TIM2_OC4_COMP6
+      - TIM3_OC3_COMP1
+      - TIM3_OC3_COMP2
+      - TIM3_OC3_COMP3
+      - TIM3_OC3_COMP5
+      - TIM3_OC3_COMP7
+      - TIM3_OC4_COMP4
+      - TIM8_OC5_COMP1
+      - TIM8_OC5_COMP2
+      - TIM8_OC5_COMP3
+      - TIM8_OC5_COMP4
+      - TIM8_OC5_COMP5
+      - TIM8_OC5_COMP6
+      - TIM8_OC5_COMP7
+      - TIM15_OC1_COMP4
+      - TIM15_OC2_COMP6
+      - TIM15_OC2_COMP7
+      - TIM20_OC5
+      - TIM15_OC1
+      - TIM4_OC3
+    default: NONE
+
+  positive-input:
+    required: true
+    type: string
+    description: |
+      Selects positive input pin given by pinmux controller. This input can be
+      typically assigned to one of the predefinded package pins.
+      IN0 will correspond to first pinmux pin option and IN1 to the second one.
+    enum:
+      - IN0
+      - IN1
+    default: IN0
+
+  negative-input:
+    required: true
+    type: string
+    description: |
+      Selects negative input pin given by pinmux controller.
+      This input can be typically assigned to one of the predefinded package pins
+      or to one of internal signals like VREF_INT or DAC.
+      In case of package pin assignment IN0 will correspond to first pinmux pin
+      option and IN1 to the second one.
+    enum:
+      - VREF_INT_1_4
+      - VREF_INT_1_2
+      - VREF_INT_3_4
+      - VREF_INT
+      - DAC1_CH1
+      - DAC1_CH2
+      - DAC2_CH1
+      - DAC3_CH1
+      - DAC3_CH2
+      - DAC4_CH1
+      - DAC4_CH2
+      - IN0
+      - IN1
+    default: VREF_INT
+
+  st,miller-effect-hold-enable:
+    type: boolean
+    description: |
+      Miller effect is a hidden feature of stm32, which may be enabled by setting
+      bit 1 of COMP_CxCSR register.
+      for more info see:
+        https://community.st.com/t5/stm32-mcus-products/stm32g431-comparator-bug/m-p/679540#M250779
