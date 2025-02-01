@@ -1,0 +1,15 @@
+sample:
+  name: Comparator API sample
+tests:
+  sample.drivers.comparator:
+    tags:
+      - comparator
+    depends_on: comparator
+    platform_allow:
+      - nucleo_h745zi_q/stm32h745xx/m7
+    harness: console
+    timeout: 10
+    harness_config:
+      type: one_line
+      regex:
+        - "comparator@.* output: \\d+"
