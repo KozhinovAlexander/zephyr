@@ -26,6 +26,7 @@
 #include <zephyr/dt-bindings/pinctrl/stm32-pinctrl-common.h>	/* For PORTA/PORTB defines */
 
 #include "stm32_hsem.h"
+#include "intc_exti_stm32_priv.h"
 
 #define INTC_NODE DT_DRV_INST(0)
 

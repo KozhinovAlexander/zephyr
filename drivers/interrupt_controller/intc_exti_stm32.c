@@ -11,15 +11,10 @@
  * @brief Driver for External interrupt/event controller in STM32 MCUs
  */
 
-#define EXTI_NODE DT_INST(0, st_stm32_exti)
-
-#include <zephyr/device.h>
 #include <soc.h>
 #include <stm32_ll_bus.h>
-#include <stm32_ll_exti.h>
 #include <stm32_ll_system.h>
 #include <zephyr/sys/__assert.h>
-#include <zephyr/sys/util.h>
 #include <zephyr/dt-bindings/pinctrl/stm32-pinctrl-common.h> /* needed for PORTx defines */
 #include <zephyr/drivers/interrupt_controller/intc_exti_stm32.h>
 #include <zephyr/irq.h>
@@ -29,75 +24,13 @@
 #endif /* CONFIG_SOC_SERIES_STM32F1X */
 
 #include "stm32_hsem.h"
+#include "intc_exti_stm32_priv.h"
 
+#define DT_DRV_COMPAT st_stm32_exti
 
-#if DT_HAS_COMPAT_STATUS_OKAY(st_stm32g0_exti)
-
-#define EXTI_IS_ACTIVE_RISING_FLAG_0_31(line)  LL_EXTI_IsActiveRisingFlag_0_31(line)
-#define EXTI_IS_ACTIVE_FALLING_FLAG_0_31(line) LL_EXTI_IsActiveFallingFlag_0_31(line)
-#define LL_EXTI_IsActiveFlag_0_31(line) \
-	(EXTI_IS_ACTIVE_RISING_FLAG_0_31(line) || EXTI_IS_ACTIVE_FALLING_FLAG_0_31(line))
-
-#define EXTI_CLEAR_RISING_FLAG_0_31(line)  LL_EXTI_ClearRisingFlag_0_31(line)
-#define EXTI_CLEAR_FALLING_FLAG_0_31(line) LL_EXTI_ClearFallingFlag_0_31(line)
-#define LL_EXTI_ClearFlag_0_31(line) \
-	{ EXTI_CLEAR_RISING_FLAG_0_31(line); EXTI_CLEAR_FALLING_FLAG_0_31(line); }
-
-#endif /* DT_HAS_COMPAT_STATUS_OKAY(st_stm32g0_exti) */
-
-#if DT_HAS_COMPAT_STATUS_OKAY(st_stm32h7_comp) && defined(CONFIG_CPU_CORTEX_M4)
-#define CPU_NR _C2
-#else /* DT_HAS_COMPAT_STATUS_OKAY(st_stm32h7_comp) && defined(CONFIG_CPU_CORTEX_M4) */
-#define CPU_NR
-#endif /* DT_HAS_COMPAT_STATUS_OKAY(st_stm32h7_comp) && defined(CONFIG_CPU_CORTEX_M4) */
-
-#define EXTI_ENABLE_IT_0_31(line)  CONCAT(LL, CPU_NR, _EXTI_EnableIT_0_31)(line)
-#define EXTI_DISABLE_IT_0_31(line) CONCAT(LL, CPU_NR, _EXTI_DisableIT_0_31)(line)
-
-#define EXTI_ENABLE_EVENT_0_31(line)  CONCAT(LL, CPU_NR, _EXTI_EnableEvent_0_31)(line)
-#define EXTI_DISABLE_EVENT_0_31(line) CONCAT(LL, CPU_NR, _EXTI_DisableEvent_0_31)(line)
-
-#define EXTI_CLEAR_FLAG_0_31(line)  CONCAT(LL, CPU_NR, _EXTI_ClearFlag_0_31)(line)
-#define EXTI_CLEAR_FLAG_32_63(line) CONCAT(LL, CPU_NR, _EXTI_ClearFlag_32_63)(line)
-
-#define EXTI_IS_ACTIVE_FLAG_0_31(line)  CONCAT(LL, CPU_NR, _EXTI_IsActiveFlag_0_31)(line)
-#define EXTI_IS_ACTIVE_FLAG_32_63(line) CONCAT(LL, CPU_NR, _EXTI_IsActiveFlag_32_63)(line)
-#define EXTI_IS_ACTIVE_FLAG_64_95(line) CONCAT(LL, CPU_NR, _EXTI_IsActiveFlag_64_95)(line)
-
-#define EXTI_ENABLE_RISING_TRIG_0_31(line)  CONCAT(LL, _EXTI_EnableRisingTrig_0_31)(line)
-#define EXTI_ENABLE_FALLING_TRIG_0_31(line) CONCAT(LL, _EXTI_EnableFallingTrig_0_31)(line)
-
-#define EXTI_DISABLE_FALLING_TRIG_0_31(line) CONCAT(LL, _EXTI_DisableFallingTrig_0_31)(line)
-#define EXTI_DISABLE_RISING_TRIG_0_31(line)  CONCAT(LL, _EXTI_DisableRisingTrig_0_31)(line)
-
-/** @brief EXTI lines range mapped to a single interrupt line */
-struct stm32_exti_range {
-	/** Start of the range */
-	uint8_t start;
-	/** Range length */
-	uint8_t len;
-};
-
-/* Takes elements with indexes 0,2,4,.. with weight 0 and the others as-is */
-#define SEL2ND(node_id, prop, idx) \
-	(DT_PROP_BY_IDX(node_id, prop, idx) * (idx % 2))
-
-#define NUM_EXTI_LINES \
-	DT_FOREACH_PROP_ELEM_SEP(DT_NODELABEL(exti), line_ranges, SEL2ND, (+))
+#define EXTI_NODE DT_INST(0, st_stm32_exti)
 
 static IRQn_Type exti_irq_table[NUM_EXTI_LINES] = {[0 ... NUM_EXTI_LINES - 1] = 0xFF};
-
-/* User callback wrapper */
-struct __exti_cb {
-	stm32_exti_irq_cb_t cb;
-	void *data;
-};
-
-/* EXTI driver data */
-struct stm32_exti_data {
-	/* per-line callbacks */
-	struct __exti_cb cb[NUM_EXTI_LINES];
-};
 
 /**
  * @returns the LL_EXTI_LINE_n define for EXTI line number @p linenum
