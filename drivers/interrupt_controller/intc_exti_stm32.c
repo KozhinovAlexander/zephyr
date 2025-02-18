@@ -37,6 +37,7 @@ static IRQn_Type exti_irq_table[NUM_EXTI_LINES] = {[0 ... NUM_EXTI_LINES - 1] = 
  */
 static inline uint32_t linenum_to_ll_exti_line(uint32_t linenum)
 {
+	__ASSERT_NO_MSG(linenum < NUM_EXTI_LINES);
 	return BIT(linenum % 32U);
 }
 
@@ -117,14 +118,12 @@ void stm32_exti_enable_irq(uint32_t linenum)
 {
 	const uint32_t ll_exti_line = linenum_to_ll_exti_line(linenum);
 
-	if (linenum < NUM_EXTI_LINES) {
-		/* Get matching exti irq provided line number thanks to irq_table */
-		const unsigned int irqnum = exti_irq_table[linenum];
+	/* Get matching exti irq provided line number thanks to irq_table */
+	const unsigned int irqnum = exti_irq_table[linenum];
 
-		__ASSERT_NO_MSG(irqnum != 0xFF);
-		/* Disable exti irq interrupt */
-		irq_enable(irqnum);
-	}
+	__ASSERT_NO_MSG(irqnum != 0xFF);
+	/* Enable exti irq interrupt */
+	irq_enable(irqnum);
 
 	/* Enable requested line interrupt */
 	EXTI_ENABLE_IT_0_31(ll_exti_line);
@@ -133,15 +132,12 @@ void stm32_exti_enable_irq(uint32_t linenum)
 void stm32_exti_disable_irq(uint32_t linenum)
 {
 	const uint32_t ll_exti_line = linenum_to_ll_exti_line(linenum);
+	/* Get matching exti irq provided line number thanks to irq_table */
+	const unsigned int irqnum = exti_irq_table[linenum];
 
-	if (linenum < NUM_EXTI_LINES) {
-		/* Get matching exti irq provided line number thanks to irq_table */
-		const unsigned int irqnum = exti_irq_table[linenum];
-
-		__ASSERT_NO_MSG(irqnum != 0xFF);
-		/* Disable exti irq interrupt */
-		irq_disable(irqnum);
-	}
+	__ASSERT_NO_MSG(irqnum != 0xFF);
+	/* Disable exti irq interrupt */
+	irq_disable(irqnum);
 
 	/* Disable requested line interrupt */
 	EXTI_DISABLE_IT_0_31(ll_exti_line);
@@ -172,6 +168,8 @@ void stm32_exti_disable_event(uint32_t linenum)
   */
 int stm32_exti_set_irq_callback(uint32_t linenum, stm32_exti_irq_cb_t cb, void *user)
 {
+	__ASSERT_NO_MSG(linenum < NUM_EXTI_LINES);
+
 	const struct device *const dev = DEVICE_DT_GET(EXTI_NODE);
 	struct stm32_exti_data *data = dev->data;
 
@@ -197,6 +195,8 @@ int stm32_exti_set_irq_callback(uint32_t linenum, stm32_exti_irq_cb_t cb, void *
  */
 void stm32_exti_remove_irq_callback(uint32_t linenum)
 {
+	__ASSERT_NO_MSG(linenum < NUM_EXTI_LINES);
+
 	const struct device *const dev = DEVICE_DT_GET(EXTI_NODE);
 	struct stm32_exti_data *data = dev->data;
 
@@ -206,6 +206,8 @@ void stm32_exti_remove_irq_callback(uint32_t linenum)
 
 void stm32_exti_set_line_src_port(uint32_t linenum, uint32_t port)
 {
+	__ASSERT_NO_MSG(linenum < NUM_EXTI_LINES);
+
 	uint32_t ll_line = stm32_exti_linenum_to_src_cfg_line(linenum);
 
 #if defined(CONFIG_SOC_SERIES_STM32L0X) && defined(LL_SYSCFG_EXTI_PORTH)
@@ -236,6 +238,8 @@ void stm32_exti_set_line_src_port(uint32_t linenum, uint32_t port)
 
 uint32_t stm32_exti_get_line_src_port(uint32_t linenum)
 {
+	__ASSERT_NO_MSG(linenum < NUM_EXTI_LINES);
+
 	uint32_t ll_line = stm32_exti_linenum_to_src_cfg_line(linenum);
 	uint32_t port;
 
@@ -304,6 +308,8 @@ void stm32_exti_set_trigger_type(uint32_t linenum, stm32_exti_trigger_type trigg
  */
 void stm32_exti_set_mode(uint32_t linenum, stm32_exti_mode mode)
 {
+	__ASSERT_NO_MSG(linenum < NUM_EXTI_LINES);
+
 	switch (mode) {
 	case STM32_EXTI_MODE_NONE:
 		stm32_exti_disable_event(linenum);
