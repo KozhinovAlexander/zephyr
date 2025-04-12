@@ -1,0 +1,25 @@
+# Copyright (c) 2025 Alexander Kozhinov <ak.alexander.kozhinov@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+menuconfig OPAMP
+	bool "OpAmp drivers"
+	help
+	  Enable opamp driver configuration.
+
+if OPAMP
+
+module = OPAMP
+module-str = opamp
+source "subsys/logging/Kconfig.template.log_config"
+
+config OPAMP_INIT_PRIORITY
+	int "OpAmp init priority"
+	default KERNEL_INIT_PRIORITY_DEVICE
+	help
+	  OpAmp device driver initialization priority.
+
+rsource "Kconfig.fake_opamp"
+rsource "Kconfig.shell"
+rsource "Kconfig.stm32_opamp"
+
+endif # OPAMP

@@ -1,0 +1,46 @@
+/*
+ * Copyright (c) 2025 Alexander Kozhinov <ak.alexander.kozhinov@gmail.com>
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+ #include <zephyr/dt-bindings/gpio/gpio.h>
+
+/*
+ * IMPORTANT: D33 (PB0) shall be connected to D27 (PB2) by a jumper wire
+ */
+
+/ {
+	aliases {
+		test-opamp = &opamp1;
+	};
+
+	zephyr,user {
+		/* connected also to green led and will toggle it */
+		test-gpios = <&gpiob 0 GPIO_ACTIVE_HIGH>;
+	};
+};
+
+&pinctrl {
+	/omit-if-no-ref/ comp1_in_p_pb0: comp1_in_p_pb0 {
+		pinmux = <STM32_PINMUX('B', 0, ANALOG)>;
+	};
+
+	/omit-if-no-ref/ comp1_in_p_pb2: comp1_in_p_pb2 {
+		pinmux = <STM32_PINMUX('B', 2, ANALOG)>;
+	};
+
+	/omit-if-no-ref/ comp1_in_m_pc4: comp1_in_m_pc4 {
+		pinmux = <STM32_PINMUX('C', 4, ANALOG)>;
+	};
+
+	/omit-if-no-ref/ comp1_out_pe12: comp1_out_pe12 {
+		pinmux = <STM32_PINMUX('E', 12, AF13)>;
+		slew-rate = "very-high-speed";
+	};
+};
+
+&opamp1 {
+	status = "okay";
+	// pinctrl-0 = <&comp1_in_p_pb2 &comp1_out_pe12>;
+	// pinctrl-names = "default";
+};
