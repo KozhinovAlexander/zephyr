@@ -1,0 +1,113 @@
+# Copyright (c) 2025 Alexander Kozhinov <ak.alexander.kozhinov@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  ST Micro STM32 OPAMP (Operational Amplifier) device tree bindings.
+
+  This opamp has varying configurations which require varying
+  properties be set in the devicetree.
+
+  The following example displays the minimum node layout:
+
+    opamp: opamp@deadbeef {
+            compatible = "st,stm32-opamp";
+            reg = <0xdeadbeef 0x1000>;
+            status = "disabled";
+    };
+
+  Enabling the opamp node requires setting the default
+  configuration of the opamp.
+
+  The following example displays enabling the opamp in
+  single-ended mode, selecting an internal reference:
+
+    &opamp {
+            status = "okay";
+            main-mode = "SE";
+            psel = "AIN0";
+            refsel = "INT_1V2";
+            slew-rate = "NORMAL";
+    };
+
+  To select an external reference, select the "AREF"
+  reference and add the external reference:
+
+    &opamp {
+            ...
+            refsel = "AREF";
+            extrefsel = "AIN1";
+            ...
+    };
+
+  The following example displays enabling the comparator
+  in differential mode:
+
+    &opamp {
+            status = "okay";
+            main-mode = "DIFF";
+            psel = "AIN0";
+            extrefsel = "AIN1";
+            slew-rate = "NORMAL";
+    };
+
+compatible: "st,stm32-opamp"
+
+include: base.yaml
+
+properties:
+  main-mode:
+    type: string
+    enum:
+      - "SE"
+      - "DIFF"
+
+  psel:
+    type: string
+    enum:
+      - "AIN0"
+      - "AIN1"
+      - "AIN2"
+      - "AIN3"
+      - "AIN4"
+      - "AIN5"
+      - "AIN6"
+      - "AIN7"
+      - "VDD_DIV2"
+      - "VDDH_DIV5"
+
+  extrefsel:
+    type: string
+    enum:
+      - "AIN0"
+      - "AIN1"
+      - "AIN2"
+      - "AIN3"
+      - "AIN4"
+      - "AIN5"
+      - "AIN6"
+      - "AIN7"
+
+  refsel:
+    type: string
+    enum:
+      - "INT_1V2"
+      - "INT_1V8"
+      - "INT_2V4"
+      - "AVDDAO1V8"
+      - "VDD"
+      - "AREF"
+
+  slew-rate:
+    type: string
+    enum:
+      - "LOW"
+      - "NORMAL"
+      - "HIGH"
+
+  lock:
+    type: boolean
+    description: |
+      Lock the OPAMP configuration. This property is optional.
+      If not set, the OPAMP configuration will be unlocked by default.
+      The lock property is used to prevent accidental changes to the OPAMP
+      configuration after it has been set.
