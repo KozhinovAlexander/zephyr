@@ -1,0 +1,11 @@
+common:
+  build_only: true
+  tags:
+    - drivers
+    - opamp
+tests:
+  drivers.build_all.opamp.stm32_opamp.se_aref:
+    platform_allow:
+      - nucleo_h745zi_q/stm32h7xx/cpuapp
+    integration_platforms:
+      - nucleo_h745zi_q/stm32h7xx/cpuapp
