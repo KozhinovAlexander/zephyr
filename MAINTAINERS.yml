@@ -1240,6 +1240,23 @@ Release Notes:
   tests:
     - drivers.comparator
 
+"Drivers: OpAmp":
+  status: maintained
+  maintainers:
+    - KozhinovAlexander
+  files:
+    - drivers/opamp/
+    - dts/bindings/opamp/
+    - include/zephyr/drivers/opamp.h
+    - include/zephyr/drivers/opamp/
+    - tests/drivers/build_all/opamp/
+    - tests/drivers/opamp/
+    - doc/hardware/peripherals/opamp.rst
+  labels:
+    - "area: OpAmp"
+  tests:
+    - drivers.opamp
+
 "Drivers: Console":
   status: odd fixes
   files:
