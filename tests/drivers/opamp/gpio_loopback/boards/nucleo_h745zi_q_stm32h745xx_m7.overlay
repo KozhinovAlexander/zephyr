@@ -1,0 +1,27 @@
+/*
+ * Copyright (c) 2025 Alexander Kozhinov <ak.alexander.kozhinov@gmail.com>
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+ #include <zephyr/dt-bindings/gpio/gpio.h>
+
+/*
+ * IMPORTANT: D33 (PB0) shall be connected to D27 (PB2) by a jumper wire
+ */
+
+/ {
+	aliases {
+		test-opamp = &opamp1;
+	};
+
+	zephyr,user {
+		/* connected also to green led and will toggle it */
+		test-gpios = <&gpiob 0 GPIO_ACTIVE_HIGH>;
+	};
+};
+
+&opamp1 {
+	status = "okay";
+	pinctrl-0 = <&opamp1_vinm_pa7 &opamp1_vinp_pb0 &opamp2_vout_pe7>;
+	pinctrl-names = "default";
+};
