@@ -1,0 +1,21 @@
+# Copyright (c) 2025 Alexander Kozhinov <ak.alexander.kozhinov@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+config OPAMP_SHELL
+	bool "OpAmp shell"
+	default y
+	depends on SHELL
+	help
+	  OpAmp device driver shell.
+
+if OPAMP_SHELL
+
+config OPAMP_SHELL_AWAIT_TRIGGER_DEFAULT_TIMEOUT
+	int "Default timeout for await_trigger command in seconds"
+	default 10
+
+config OPAMP_SHELL_AWAIT_TRIGGER_MAX_TIMEOUT
+	int "Max timeout for await_trigger command in seconds"
+	default 60
+
+endif # OPAMP_SHELL
