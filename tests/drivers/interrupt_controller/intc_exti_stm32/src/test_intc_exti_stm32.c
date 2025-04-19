@@ -15,13 +15,13 @@
 #define EXTI_NUM_LINES_TOTAL	DT_PROP(EXTI_DT_NODE, num_lines)
 #define EXTI_NUM_LINES_GPIO		16U
 
-// #if DT_NODE_HAS_STATUS_OKAY(DT_INST(0, resources))
+#if DT_NODE_HAS_STATUS_OKAY(DT_INST(0, test_st_stm32_exti))
 
 #define TEST_EXTI_LINE_NR	DT_PROP(DT_INST(0, test_st_stm32_exti), exti_line_nr)
 #define TEST_EXTI_IRQ_NR	DT_PROP(DT_INST(0, test_st_stm32_exti), exti_line_irq_nr)
 #define TEST_EXTI_IRQ_PRIO	DT_PROP(DT_INST(0, test_st_stm32_exti), exti_line_irq_prio)
 
-// #endif /* DT_NODE_HAS_STATUS_OKAY(DT_INST(0, test_st_stm32_exti)) */
+#endif /* DT_NODE_HAS_STATUS_OKAY(DT_INST(0, test_st_stm32_exti)) */
 
 static void test_exti_isr(void)
 {
