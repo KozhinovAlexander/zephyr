@@ -53,9 +53,10 @@ board_list=(
 
 # The apps are defined for this application
 app_list=(
-	"tests/drivers/interrupt_controller/intc_exti_stm32"
-	"tests/drivers/gpio/gpio_basic_api"
-	"tests/drivers/rtc/rtc_api"
+	# "tests/drivers/interrupt_controller/intc_exti_stm32"
+	# "tests/drivers/gpio/gpio_basic_api"
+	# "tests/drivers/rtc/rtc_api"
+	"tests/drivers/comparator/gpio_loopback"
 )
 
 # This array shall have same size as app_list
@@ -65,8 +66,8 @@ sleep_time_sec_list=(
 	60
 )
 
-west twister -T "tests/drivers/interrupt_controller/intc_exti_stm32"
-exit 1
+# west twister -T "tests/drivers/interrupt_controller/intc_exti_stm32"
+# exit 1
 
 script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Iterate over boards:
