@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2023 STMicrelectronics
+ * Copyright (c) 2025 Alexander Kozhinov <ak.alexander.kozhinov@gmail.com>
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#ifndef ZEPHYR_INCLUDE_DT_BINDINGS_ADC_STM32H7_ADC_H_
-#define ZEPHYR_INCLUDE_DT_BINDINGS_ADC_STM32H7_ADC_H_
+#ifndef ZEPHYR_INCLUDE_DT_BINDINGS_COMPARATOR_STM32G4_COMP_H_
+#define ZEPHYR_INCLUDE_DT_BINDINGS_COMPARATOR_STM32G4_COMP_H_
 
-#include <zephyr/dt-bindings/adc/stm32_adc.h>
+#include <zephyr/dt-bindings/comparator/stm32_comp.h>
 
 /* STM32 ADC resolution register for H7 and similar */
 #define STM32_ADC_RES_REG	0x0C
@@ -24,4 +24,4 @@
 	STM32_ADC(resolution, reg_val, STM32H72X_ADC3_RES_MASK, \
 		  STM32H72X_ADC3_RES_SHIFT, STM32_ADC_RES_REG)
 
-#endif /* ZEPHYR_INCLUDE_DT_BINDINGS_ADC_STM32H7_ADC_H_ */
+#endif /* ZEPHYR_INCLUDE_DT_BINDINGS_COMPARATOR_STM32G4_COMP_H_ */
