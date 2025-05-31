@@ -67,8 +67,8 @@ sleep_time_sec_list=(
 	60
 )
 
-west twister -T "tests/drivers/interrupt_controller/intc_exti_stm32" --vendor st
-exit 1
+# west twister -T "tests/drivers/interrupt_controller/intc_exti_stm32" --vendor st
+# exit 1
 
 script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Iterate over boards:
@@ -81,14 +81,15 @@ for board in "${board_list[@]}"; do
 		build_dir="$app_abs_path/build/$safe_board_name"
 		echo "--> use build directory: $build_dir"
 
-		rm -rf $build_dir
-		west twister -p $board -T $app_abs_path --vendor st \
-			--device-testing --device-serial-baud 115200 --device-serial "/dev/ttyACM0" -v
-		# west build -p auto -d $build_dir -b $board $app_abs_path
+		# rm -rf $build_dir
+		# west twister -p $board -T $app_abs_path --vendor st \
+		# 	--device-testing --device-serial-baud 115200 --device-serial "/dev/ttyACM0" -v
+		# exit $?;
+		west build -p auto -d $build_dir -b $board $app_abs_path
 		[ $? -ne 0 ] && exit $?;
 
-		# west flash -d $build_dir
-		# [ $? -ne 0 ] && exit $?;
+		west flash -d $build_dir
+		[ $? -ne 0 ] && exit $?;
 
 		# echo "--> wait ${sleep_time_sec_list[$i]} sec. for $board $app to finish..."
 		# sleep ${sleep_time_sec_list[$i]}
