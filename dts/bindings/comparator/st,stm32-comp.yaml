@@ -175,11 +175,11 @@ properties:
         https://community.st.com/t5/stm32-mcus-products/stm32g431-comparator-bug/m-p/679540#M250779
 
   st,power-mode:
-    type: string
+    type: int
     description: |
       Power mode is not supported by all stm32 series.
-    enum:
-      - HIGHSPEED
-      - MEDIUMSPEED
-      - ULTRALOWPOWER
-    default: MEDIUMSPEED
+    # enum:
+    #   - HIGHSPEED
+    #   - MEDIUMSPEED
+    #   - ULTRALOWPOWER
+    # default: MEDIUMSPEED

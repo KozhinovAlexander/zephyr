@@ -15,6 +15,7 @@
 #include <zephyr/dt-bindings/pwm/stm32_pwm.h>
 #include <zephyr/dt-bindings/dma/stm32_dma.h>
 #include <zephyr/dt-bindings/adc/stm32h7_adc.h>
+#include <zephyr/dt-bindings/comparator/stm32h7_comp.h>
 #include <zephyr/dt-bindings/reset/stm32h7_reset.h>
 #include <zephyr/dt-bindings/adc/adc.h>
 #include <zephyr/dt-bindings/memory-controller/stm32-fmc-sdram.h>
@@ -1099,7 +1100,7 @@
 			interrupts = <137 0>;
 			st,exti-line = <20>;
 			st,blank-sel = "NONE";
-			st,power-mode = "MEDIUMSPEED";
+			st,power-mode = <STM32_COMP_POWERMODE_MEDIUMSPEED>;
 			positive-input = "IN0";
 			negative-input = "VREFINT";
 			invert-output = "NONINVERTED";
@@ -1113,7 +1114,7 @@
 			interrupts = <137 0>;
 			st,exti-line = <20>;
 			st,blank-sel = "NONE";
-			st,power-mode = "MEDIUMSPEED";
+			st,power-mode = <STM32_COMP_POWERMODE_MEDIUMSPEED>;
 			positive-input = "IN0";
 			negative-input = "VREFINT";
 			invert-output = "NONINVERTED";

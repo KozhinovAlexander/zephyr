@@ -49,8 +49,7 @@ LOG_MODULE_REGISTER(stm32_comp, CONFIG_COMPARATOR_LOG_LEVEL);
 
 #define STM32_COMP_DT_EXTI_LINE_NUMBER(inst) DT_INST_PROP(inst, st_exti_line)
 
-#define STM32_COMP_DT_POWER_MODE(inst)                                                             \
-	CONCAT(LL_COMP_POWERMODE_, DT_INST_STRING_TOKEN(inst, st_power_mode))
+#define STM32_COMP_DT_POWER_MODE(inst)	DT_INST_PROP(inst, st_power_mode)
 
 #if DT_HAS_COMPAT_STATUS_OKAY(st_stm32h7_comp)
 #define STM32_COMP_DT_INST_COMP_CONFIG_INIT(inst)                                                  \
