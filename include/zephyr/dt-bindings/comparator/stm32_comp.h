@@ -8,6 +8,8 @@
 
 #include <zephyr/dt-bindings/comparator/comp.h>
 
-#include <stm32_ll_comp.h>
+#define STM32_COMP_POWERMODE_HIGHSPEED		123
+#define STM32_COMP_POWERMODE_MEDIUMSPEED	456
+#define STM32_COMP_POWERMODE_ULTRALOWPOWER	789
 
 #endif /* ZEPHYR_INCLUDE_DT_BINDINGS_COMPARATOR_STM32_COMP_H_ */
