@@ -3,8 +3,9 @@ common:
   tags:
     - drivers
     - opamp
+
 tests:
   drivers.build_all.opamp.stm32_opamp.opamp1:
     extra_args:
       - DTC_OVERLAY_FILE="stm32_opamp/opamp1.dts"
-    filter: dt_compat_enabled('st,stm32-opamp')
+    filter: dt_has_compat("st,stm32-opamp")

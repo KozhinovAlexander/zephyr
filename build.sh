@@ -56,9 +56,9 @@ board_list=(
 
 # The apps are defined for this application
 app_list=(
-	"tests/drivers/opamp/gpio_loopback"
+	# "tests/drivers/opamp/gpio_loopback"
 	# "tests/drivers/opamp/shell"
-	# "tests/drivers/build_all/opamp"
+	"tests/drivers/build_all/opamp"
 )
 
 # This array shall have same size as app_list
@@ -68,10 +68,10 @@ sleep_time_sec_list=(
 	2
 )
 
-# for i in "${!app_list[@]}"; do
-# 	west twister -T ${app_list[$i]} --vendor st
-# done
-# exit $?;
+for i in "${!app_list[@]}"; do
+	west twister -T ${app_list[$i]} --vendor st
+done
+exit $?;
 
 script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Iterate over boards:
