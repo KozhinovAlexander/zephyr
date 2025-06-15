@@ -2,13 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 common:
-  harness_config:
-    fixture: gpio_loopback
   tags:
     - drivers
     - opamp
   harness: ztest
 
 tests:
-  drivers.opamp.gpio_loopback.stm32_opamp:
+  drivers.opamp.gpio_loopback:
     filter: dt_compat_enabled("st,stm32-opamp")
