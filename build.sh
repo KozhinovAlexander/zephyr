@@ -56,9 +56,7 @@ board_list=(
 
 # The apps are defined for this application
 app_list=(
-	"tests/drivers/interrupt_controller/intc_exti_stm32"
-	"tests/drivers/gpio/gpio_basic_api"
-	"tests/drivers/rtc/rtc_api"
+	"tests/drivers/comparator/gpio_loopback"
 )
 
 # This array shall have same size as app_list
