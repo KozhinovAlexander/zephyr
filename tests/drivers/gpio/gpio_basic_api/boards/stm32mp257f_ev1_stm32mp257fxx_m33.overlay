@@ -4,13 +4,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-/* loopback with arduino header D0 (PB7) and D1 (PB6) */
+/**
+ * PB7 (GPIO.SPI3 SCK / GPIO11) and PB8 (GPIO.SPI3 MOSI / GPIO10)
+ * must be shortened by a wire.
+ */
 
 / {
 	resources {
 		compatible = "test-gpio-basic-api";
 		status = "okay";
-		out-gpios = <&arduino_header 6 (GPIO_ACTIVE_HIGH | GPIO_PUSH_PULL | GPIO_PULL_UP)>;
-		in-gpios = <&arduino_header 7 (GPIO_ACTIVE_HIGH | GPIO_PUSH_PULL | GPIO_PULL_UP)>;
+		out-gpios = <&gpiob 7 (GPIO_ACTIVE_HIGH | GPIO_PUSH_PULL | GPIO_PULL_UP)>;
+		in-gpios = <&gpiob 8 (GPIO_ACTIVE_HIGH | GPIO_PUSH_PULL | GPIO_PULL_UP)>;
 	};
+};
+
+&gpiob {
+	status = "okay";
 };
