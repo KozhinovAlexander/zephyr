@@ -4,8 +4,8 @@
 tests:
   drivers.opamp.shell:
     platform_allow:
-      - nucleo_h745zi_q/stm32h745xx/m4
-      - nucleo_h745zi_q/stm32h745xx/m7
+      - native_sim
+      - native_sim/native/64
     tags:
       - drivers
       - opamp
