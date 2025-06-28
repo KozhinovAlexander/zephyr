@@ -3,11 +3,9 @@ common:
   tags:
     - drivers
     - opamp
+
 tests:
   drivers.build_all.opamp.stm32_opamp.opamp1:
     extra_args:
       - DTC_OVERLAY_FILE="stm32_opamp/opamp1.dts"
-    platform_allow:
-      - nucleo_h745zi_q/stm32h7xx/cpuapp
-    integration_platforms:
-      - nucleo_h745zi_q/stm32h7xx/cpuapp
+    filter: dt_has_compat("st,stm32-opamp")
