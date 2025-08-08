@@ -1102,7 +1102,7 @@
 			st,power-mode = "MEDIUMSPEED";
 			positive-input = "IN0";
 			negative-input = "VREFINT";
-			invert-output = <123456>;
+			invert-output = <LL_COMP_OUTPUTPOL_NONINVERTED>;
 			clocks = <&rcc STM32_CLOCK(APB4, 14U)>;
 			status = "disabled";
 		};
@@ -1116,7 +1116,7 @@
 			st,power-mode = "MEDIUMSPEED";
 			positive-input = "IN0";
 			negative-input = "VREFINT";
-			invert-output = <123456>;
+			invert-output = <LL_COMP_OUTPUTPOL_NONINVERTED>;
 			clocks = <&rcc STM32_CLOCK(APB4, 14U)>;
 			status = "disabled";
 		};
