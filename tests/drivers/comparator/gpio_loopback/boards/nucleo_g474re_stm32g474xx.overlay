@@ -16,15 +16,9 @@
 	};
 };
 
-&pinctrl {
-	/omit-if-no-ref/ comp1_in_p_pa1: comp1_in_p_pa1 {
-		pinmux = <STM32_PINMUX('A', 1, ANALOG)>;
-	};
-};
-
 &comp1 {
 	status = "okay";
-	pinctrl-0 = <&comp1_in_p_pa1>;
+	pinctrl-0 = <&comp1_inp_pa1>;
 	pinctrl-names = "default";
 	hysteresis = "NONE";
 	positive-input = "IN0";
