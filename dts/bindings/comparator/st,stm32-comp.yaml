@@ -61,12 +61,15 @@ properties:
       - 70MV
     default: NONE
 
+  # invert-output:
+  #   type: string
+  #   enum:
+  #     - NONINVERTED
+  #     - INVERTED
+  #   default: NONINVERTED
+
   invert-output:
-    type: string
-    enum:
-      - NONINVERTED
-      - INVERTED
-    default: NONINVERTED
+    type: int
 
   st,exti-line:
     required: true
