@@ -27,6 +27,6 @@
 	hysteresis = "NONE";
 	positive-input = "IN1";
 	negative-input = "1_4VREFINT";
-	invert-output = "NONINVERTED";
+	invert-output = <LL_COMP_OUTPUTPOL_NONINVERTED>;  // LL_COMP_OUTPUTPOL_NONINVERTED
 	st,blank-sel = "NONE";
 };
