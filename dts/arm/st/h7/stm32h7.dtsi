@@ -23,6 +23,9 @@
 #include <zephyr/dt-bindings/memory-attr/memory-attr-arm.h>
 #include <freq.h>
 
+#include <st/h7/drivers/include/stm32h7xx_ll_comp_def.dtsi>
+// #define LL_COMP_OUTPUTPOL_NONINVERTED	0
+
 / {
 	chosen {
 		zephyr,entropy = &rng;
@@ -1148,7 +1151,7 @@
 			st,power-mode = "MEDIUMSPEED";
 			positive-input = "IN0";
 			negative-input = "VREFINT";
-			invert-output = "NONINVERTED";
+			invert-output = <LL_COMP_OUTPUTPOL_NONINVERTED>;
 			clocks = <&rcc STM32_CLOCK(APB4, 14U)>;
 			status = "disabled";
 		};
@@ -1162,7 +1165,7 @@
 			st,power-mode = "MEDIUMSPEED";
 			positive-input = "IN0";
 			negative-input = "VREFINT";
-			invert-output = "NONINVERTED";
+			invert-output = <LL_COMP_OUTPUTPOL_NONINVERTED>;
 			clocks = <&rcc STM32_CLOCK(APB4, 14U)>;
 			status = "disabled";
 		};
