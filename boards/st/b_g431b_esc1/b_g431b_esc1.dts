@@ -1,0 +1,290 @@
+/*
+ * Copyright (c) 2024 Alexander Kozhinov <ak.alexander.kozhinov@gmail.com>
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+#include <st/g4/stm32g431X8.dtsi>
+#include <st/g4/stm32g431c(6-8-b)tx-pinctrl.dtsi>
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+
+/ {
+	model = "B-G431B-ESC1 Discovery kit";
+	compatible = "st,b-g431b-esc1";
+
+	chosen {
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+		zephyr,console = &usart2;
+		zephyr,canbus = &fdcan1;
+	};
+
+	zephyr,user {
+		/* adjust channel number according to pinmux in board.dts */
+		io-channels = <&adc1 1>, <&adc1 3>, <&adc1 5>, <&adc1 11>, <&adc1 12>;
+	};
+
+	can_transceiver0: can-phy0 {
+		/* Generic GPIO controlled CAN transceiver. The board uses TCAN330 device.
+		 * Add a specific binding later if required (no dedicated binding present).
+		 */
+		compatible = "can-transceiver-gpio";
+		max-bitrate = <10000000>;
+		#phy-cells = <0>;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		red_status_led: led4 {
+			gpios = <&gpioc 6 GPIO_ACTIVE_LOW>;
+			label = "D4 LED RED STATUS";
+		};
+	};
+
+	gpio_keys {
+		compatible = "gpio-keys";
+		button: button0 {
+			label = "SW1 miniswitch-KMR211GLFS";
+			gpios = <&gpioc 10 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			zephyr,code = <INPUT_KEY_0>;
+		};
+	};
+
+	aliases {
+		led0 = &red_status_led;
+		sw0 = &button;
+		watchdog0 = &iwdg;
+		comp1 = &comp1;
+		adc1 = &adc1;
+		adc2 = &adc2;
+		sensor0 = &die_temp;
+		sensor1 = &vref;
+		sensor2 = &vbat;
+	};
+};
+
+&clk_hse {
+	clock-frequency = <DT_FREQ_M(8)>;
+	status = "okay";
+};
+
+&clk_lsi {
+	status = "okay";
+};
+
+&pll {
+	div-m = <1>;
+	mul-n = <40>;
+	div-p = <2>;
+	div-q = <2>;
+	div-r = <2>;
+	clocks = <&clk_hse>;
+	status = "okay";
+};
+
+&rcc {
+	clocks = <&pll>;
+	clock-frequency = <DT_FREQ_M(160)>;
+	ahb-prescaler = <1>;
+	apb1-prescaler = <1>;
+	apb2-prescaler = <1>;
+};
+
+&iwdg {
+	status = "okay";
+};
+
+&dma1 {
+	status = "okay";
+};
+
+&dmamux1 {
+	status = "okay";
+};
+
+&rtc {
+	clocks = <&rcc STM32_CLOCK_BUS_APB1 0x00000400>,
+		 <&rcc STM32_SRC_LSI RTC_SEL(2)>;
+	status = "okay";
+};
+
+&usart2 {
+	pinctrl-0 = <&usart2_tx_pb3 &usart2_rx_pb4>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+};
+
+&fdcan1 {
+	pinctrl-0 = <&fdcan1_rx_pa11 &fdcan1_tx_pb9>;
+	pinctrl-names = "default";
+	clocks = <&rcc STM32_CLOCK(APB1, 25U)>,
+			 <&rcc STM32_SRC_PLL_Q FDCAN_SEL(1)>;
+	phys = <&can_transceiver0>;
+	status = "okay";
+};
+
+stm32_lp_tick_source: &lptim1 {
+	clocks = <&rcc STM32_CLOCK_BUS_APB1 0x80000000>,
+	<&rcc STM32_SRC_LSI LPTIM1_SEL(1)>;
+	status = "okay";
+};
+
+&die_temp {
+	status = "okay";
+};
+
+&vref {
+	status = "okay";
+};
+
+&vbat {
+	status = "okay";
+};
+
+&pinctrl {
+	/omit-if-no-ref/ comp1_p_in0_pa1: comp1_p_in0_pa1 {
+		pinmux = <STM32_PINMUX('A', 1, ANALOG)>;
+	};
+
+	/omit-if-no-ref/ comp1_p_in1_pb1: comp1_p_in1_pb1 {
+		pinmux = <STM32_PINMUX('B', 1, ANALOG)>;
+	};
+};
+
+&comp1 {
+	status = "okay";
+	pinctrl-0 = <&comp1_p_in0_pa1>;
+	pinctrl-names = "default";
+	hysteresis = "NONE";
+	positive-input = "IN0";
+	negative-input = "VREF_INT_1_4";
+	invert-output = "INVERTED";
+	// st,blank-sel = "NONE";
+	// st,lock-enable;
+	// st,miller-effect-hold-enable;
+};
+
+&adc1 {
+	dmas = <&dmamux1 0 5
+		(
+			STM32_DMA_MODE_CYCLIC |
+			STM32_DMA_PERIPH_TO_MEMORY |
+			STM32_DMA_PERIPH_NO_INC |
+			STM32_DMA_PERIPH_16BITS |
+			STM32_DMA_MEM_INC |
+			STM32_DMA_MEM_16BITS |
+			STM32_DMA_PRIORITY_VERY_HIGH
+		)
+		>;
+	dma-names = "dmamux";
+
+	pinctrl-0 = <
+		&adc1_in1_pa0	/* bus_voltage */
+		&adc1_in3_pa2	/* OpAmp1 Out - channel U shunt */
+		&adc1_in12_pb1	/* OpAmp3 Out - channel W shunt */
+		&adc1_in5_pb14	/* temperature */
+		&adc1_in11_pb12	/* potentiometer */
+		>;
+	pinctrl-names = "default";
+	st,adc-clock-source = "SYNC";
+	st,adc-prescaler = <4>;
+	st,adc-oversampler = "OVERSAMPLER_NONE";
+
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	status = "okay";
+
+	channel@1 {
+		reg = <1>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_TICKS, 48)>;
+		zephyr,resolution = <12>;
+		zephyr,vref-mv = <3300>;
+	};
+
+	channel@3 {
+		reg = <3>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_TICKS, 3)>;
+		zephyr,resolution = <12>;
+		zephyr,vref-mv = <3300>;
+	};
+
+	channel@5 {
+		reg = <5>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_TICKS, 48)>;
+		zephyr,resolution = <12>;
+		zephyr,vref-mv = <3300>;
+	};
+
+	channel@b {
+		reg = <11>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_TICKS, 48)>;
+		zephyr,resolution = <12>;
+		zephyr,vref-mv = <3300>;
+	};
+
+	channel@c {
+		reg = <12>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_TICKS, 3)>;
+		zephyr,resolution = <12>;
+		zephyr,vref-mv = <3300>;
+	};
+};
+
+&adc2 {
+	dmas = <&dmamux1 0 5
+		(
+			STM32_DMA_MODE_CYCLIC |
+			STM32_DMA_PERIPH_TO_MEMORY |
+			STM32_DMA_PERIPH_NO_INC |
+			STM32_DMA_PERIPH_16BITS |
+			STM32_DMA_MEM_INC |
+			STM32_DMA_MEM_16BITS |
+			STM32_DMA_PRIORITY_VERY_HIGH
+		)
+		>;
+	dma-names = "dmamux";
+
+	pinctrl-0 = <
+		&adc2_in3_pa6	/* OpAmp2 Out - channel V shunt */
+		>;
+	pinctrl-names = "default";
+	st,adc-clock-source = "SYNC";
+	st,adc-prescaler = <4>;
+	st,adc-oversampler = "OVERSAMPLER_NONE";
+
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	status = "okay";
+
+	channel@3 {
+		reg = <3>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_TICKS, 3)>;
+		zephyr,resolution = <12>;
+		zephyr,vref-mv = <3300>;
+	};
+
+	/* OpAmp3 Out - ADC2_IN_VPOPAMP3 (VPOPAMP3) */
+	channel@13 {
+		reg = <19>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_TICKS, 3)>;
+		zephyr,resolution = <12>;
+		zephyr,vref-mv = <3300>;
+	};
+};
