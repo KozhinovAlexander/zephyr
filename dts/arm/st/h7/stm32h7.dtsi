@@ -4,6 +4,7 @@
  * Copyright (c) 2020 Teslabs Engineering S.L.
  * Copyright (c) 2024 STMicroelectronics
  * Copyright (c) 2025 ZAL Zentrum für Angewandte Luftfahrtforschung GmbH
+ * Copyright (c) 2025 Alexander Kozhinov <ak.alexander.kozhinov@gmail.com>
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -1136,6 +1137,20 @@
 				 <&rcc STM32_SRC_PLL2_P SAI1_SEL(1)>;
 			dmas = <&dma1 0 88 (STM32_DMA_MODE_NORMAL | STM32_DMA_PRIORITY_HIGH |
 				STM32_DMA_16BITS) 0>;
+			status = "disabled";
+		};
+
+		opamp1: opamp1@40009000 {
+			compatible = "st,stm32-opamp";
+			reg = <0x40009000 0x10>;
+			clocks = <&rcc STM32_CLOCK(APB1, 4)>;
+			status = "disabled";
+		};
+
+		opamp2: opamp2@40009010 {
+			compatible = "st,stm32-opamp";
+			reg = <0x40009010 0x10>;
+			clocks = <&rcc STM32_CLOCK(APB1, 4)>;
 			status = "disabled";
 		};
 	};

@@ -675,6 +675,27 @@
 			interrupts = <63 0>;
 			status = "disabled";
 		};
+
+		opamp1: opamp1@40010300 {
+			compatible = "st,stm32-opamp";
+			reg = <0x40010300 0x18>;
+			clocks = <&rcc STM32_CLOCK(APB2, 0)>;
+			status = "disabled";
+		};
+
+		opamp2: opamp2@40010304 {
+			compatible = "st,stm32-opamp";
+			reg = <0x40010304 0x18>;
+			clocks = <&rcc STM32_CLOCK(APB2, 0)>;
+			status = "disabled";
+		};
+
+		opamp3: opamp3@40010308 {
+			compatible = "st,stm32-opamp";
+			reg = <0x40010308 0x18>;
+			clocks = <&rcc STM32_CLOCK(APB2, 0)>;
+			status = "disabled";
+		};
 	};
 
 	die_temp: dietemp {
