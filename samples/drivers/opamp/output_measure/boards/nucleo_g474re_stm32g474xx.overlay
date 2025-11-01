@@ -37,7 +37,7 @@
 	/* PB14 shall be connected to GND */
 	pinctrl-0 = <&opamp2_vinm_pa5 &opamp2_vinp_pb14>;
 	pinctrl-names = "default";
-	functional-mode = "follower";
+	functional-mode = "non_inverting";
 	vinm = "VINM0"; /* PA5 */
 	vinp = "VINP1"; /* PB14 */
 	io-channels = <&adc2 3>;

@@ -126,15 +126,13 @@ static int stm32_opamp_set_gain(const struct device *dev, enum opamp_gain gain)
 	if(cfg->functional_mode == OPAMP_FUNCTIONAL_MODE_FOLLOWER ||
 	   cfg->functional_mode == OPAMP_FUNCTIONAL_MODE_STANDALONE) {
 		/* Avoid writing gain value to registers in standalone or follower mode */
-		LOG_DBG("%s: can't set gain in follower or standalone mode",
-			dev->name);
+		LOG_DBG("%s: follower/standalone not supported", dev->name);
 		return 0;
 	}
 
 	/* In opamp-controler.yaml there are no negative gains present, but
 	 * inverting and non-inverting modes instead. Therefore OPAMP_GAIN_1
-	 * corresponds to -1 gain in inverting mode, and +2 gain in non-inverting
-	 * mode and gain assignment below shall be correct.
+	 * corresponds to -1 gain in inverting mode, and +2 gain in non-inverting mode.
 	 */
 	if (gain == OPAMP_GAIN_2 || gain == OPAMP_GAIN_1) {
 		stm32_ll_gain = LL_OPAMP_PGA_GAIN_2_OR_MINUS_1;
@@ -149,7 +147,7 @@ static int stm32_opamp_set_gain(const struct device *dev, enum opamp_gain gain)
 	} else if (gain == OPAMP_GAIN_64 || gain == OPAMP_GAIN_63) {
 		stm32_ll_gain = LL_OPAMP_PGA_GAIN_64_OR_MINUS_63;
 	} else {
-		LOG_ERR("%s: invalid gain value %d", dev->name, gain);
+		LOG_ERR("%s: invalid gain %d", dev->name, gain);
 		return -EINVAL;
 	}
 
@@ -166,6 +164,7 @@ static int stm32_opamp_set_functional_mode(const struct device *dev)
 
 	/* Ensure OPAMP is in functional mode (not calibration mode) */
 	LL_OPAMP_SetMode(opamp, LL_OPAMP_MODE_FUNCTIONAL);
+	LL_OPAMP_SetPGAGain(opamp, 0); /* gain reset value */
 
 	/* NOTE: The register values for each mode are defined in AN5306 document */
 	switch (cfg->functional_mode) {
@@ -188,7 +187,6 @@ static int stm32_opamp_set_functional_mode(const struct device *dev)
 				LL_OPAMP_SetInputNonInvertingSecondary(opamp, cfg->vinp[1]);
 			}
 		}
-		LL_OPAMP_SetPGAGain(opamp, 0);
 		stm32_ll_functional_mode = LL_OPAMP_MODE_STANDALONE;
 		break;
 	case OPAMP_FUNCTIONAL_MODE_FOLLOWER:
@@ -196,7 +194,6 @@ static int stm32_opamp_set_functional_mode(const struct device *dev)
 		 *	VINP connected to input signal (VP_SEL - defined by DTS)
 		 *	VINM internally connected to VOUT (VM_SEL = b11)
 		 *	PGA_GAIN = b00000 (reset value)
-		 *
 		 */
 		/* Follower mode: Only configure non-inverting input VINP */
 		LL_OPAMP_SetInputNonInverting(opamp, cfg->vinp[0]);
@@ -207,15 +204,25 @@ static int stm32_opamp_set_functional_mode(const struct device *dev)
 				LL_OPAMP_SetInputNonInvertingSecondary(opamp, cfg->vinp[1]);
 			}
 		}
-		LL_OPAMP_SetPGAGain(opamp, 0);
 		stm32_ll_functional_mode = LL_OPAMP_MODE_FOLLOWER;
 		break;
 	case OPAMP_FUNCTIONAL_MODE_DIFFERENTIAL:
+		/* Same as any PGA mode but without bias connected to VINM or VINP
+		 * The decision to connect VINM/VINP pins to bias is up to circuit designer
+		 */
 	case OPAMP_FUNCTIONAL_MODE_INVERTING:
+		/* PGA mode: Internal resistor network for gain
+		 *	VINP connected to input signal (VP_SEL - defined by DTS)
+		 *	VINM connected to resistor array feedback (VM_SEL = b10)
+		 *	PGA_GAIN - defined by API
+		 */
 	case OPAMP_FUNCTIONAL_MODE_NON_INVERTING:
 		/* PGA mode: Internal resistor network for gain
-		 * The actual gain is set via opamp_set_gain() API
+		 *	VINP connected to input signal (VP_SEL - defined by DTS)
+		 *	VINM connected to resistor array feedback (VM_SEL = b10)
+		 *	PGA_GAIN - defined by API
 		 */
+
 		/* Precise PGA mode depending on filtering settings selection */
 		// LL_OPAMP_MODE_PGA /* OPAMP functional mode, OPAMP operation in PGA */
 		// LL_OPAMP_MODE_PGA_IO0 /* In PGA mode, the inverting input is connected to VINM0 for filtering */
@@ -229,9 +236,7 @@ static int stm32_opamp_set_functional_mode(const struct device *dev)
 						   * And VINM1 is connected too for filtering
 						   */
 
-		/* PGA modes: Configure both inputs
-		 * The internal resistor ladder is connected based on SetFunctionalMode
-		 */
+		/* Configure both inputs */
 		LL_OPAMP_SetInputNonInverting(opamp, cfg->vinp[0]);
 		LL_OPAMP_SetInputInverting(opamp, cfg->vinm[0]);
 
@@ -244,12 +249,6 @@ static int stm32_opamp_set_functional_mode(const struct device *dev)
 				LL_OPAMP_SetInputInvertingSecondary(opamp, cfg->vinm[1]);
 			}
 		}
-
-		/* Set default initial gain
-		 * NOTE: OPAMP_GAIN_1 in inverting mode and OPAMP_GAIN_2 in
-		 *	non-inverting mode have same PGA register value
-		 */
-		LL_OPAMP_SetPGAGain(opamp, OPAMP_GAIN_1);
 		stm32_ll_functional_mode = LL_OPAMP_MODE_PGA;
 		break;
 	default:
