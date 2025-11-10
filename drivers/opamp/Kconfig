@@ -20,5 +20,6 @@ config OPAMP_INIT_PRIORITY
 
 rsource "Kconfig.mcux_opamp"
 rsource "Kconfig.mcux_opamp_fast"
+rsource "Kconfig.stm32_opamp"
 
 endif # OPAMP
