@@ -370,6 +370,24 @@ static int stm32_cordic_result_to_float(const struct device *dev,
 	const uint32_t out_width = LL_CORDIC_GetOutSize(cordic);
 	int ret = 0;
 
+	if (float_val == NULL || length == 0) {
+		/* nothing to do shall be allowed */
+		return 0;
+	}
+
+	/* General convertion to float holding for all functions */
+	if (out_width == LL_CORDIC_OUTSIZE_32BITS) {
+		float_val[0] = Q31_TO_F32(int_val[0]);
+		if (length > 1) {
+			float_val[1] = Q31_TO_F32(int_val[1]);
+		}
+	} else {
+		float_val[0] = Q15_TO_F16((int16_t)int_val[0]);
+		if (length > 1) {
+			float_val[1] = Q15_TO_F16((int16_t)int_val[1]);
+		}
+	}
+
 	switch(fn) {
 		case LL_CORDIC_FUNCTION_COSINE:
 			break;
@@ -378,16 +396,11 @@ static int stm32_cordic_result_to_float(const struct device *dev,
 		case LL_CORDIC_FUNCTION_PHASE:
 			break;
 		case LL_CORDIC_FUNCTION_MODULUS:
-			if (out_width == LL_CORDIC_OUTSIZE_32BITS) {
-				float_val[0] = Q31_TO_F32(int_val[0]);
-				if (length > 1) {
-					float_val[1] = Q31_TO_F32(int_val[1]) * PI_F32;
-				}
-			} else {
-				float_val[0] = Q15_TO_F16((int16_t)int_val[0]);
-				if (length > 1) {
-					float_val[1] = Q15_TO_F16((int16_t)int_val[1]) * PI_F32;
-				}
+			if (length > 1) {
+				/* Second modulus result is atan2 in pi units coming
+				 * from CORDIC. Convert it to radians.
+				 */
+				float_val[1] *= PI_F32;
 			}
 			break;
 		case LL_CORDIC_FUNCTION_ARCTANGENT:
@@ -415,11 +428,11 @@ static int stm32_cordic_result_to_float(const struct device *dev,
  * @brief Perform CORDIC calculation
  */
 static int stm32_cordic_calculate(const struct device *dev,
-				  int *arg_in,
+				  const int *arg_in,
 				  int *arg_out,
 				  float *arg_out_float,
-				  uint32_t arg_in_len,
-				  uint32_t arg_out_len)
+				  const uint32_t arg_in_len,
+				  const uint32_t arg_out_len)
 {
 	const struct stm32_cordic_config *cfg = dev->config;
 	CORDIC_TypeDef *cordic = cfg->base;
@@ -431,8 +444,15 @@ static int stm32_cordic_calculate(const struct device *dev,
 		return -EINVAL;
 	}
 
-	/* Using Zero-overhead mode ( RM0440 Rev 9 pp. 472/2140):
-	 * the CPU is blocked until result is ready.
+	/* TODO: Scale arg1/arg2 by 2^-n (n - scale factor from NSCALE) */
+	const uint32_t n = (LL_CORDIC_GetScale(cordic) >> 8); /* n - scale factor*/
+	const uint32_t sc_2_power_n = (1U << n);  /* 2^n */
+	// for(uint32_t i = 0; i < arg_in_len; i++) {
+	// 	arg_in[i] = arg_in[i] / sc_2_power_n;
+	// }
+
+	/* Using Zero-overhead mode (RM0440 Rev 9 pp. 472/2140)
+	 * the CPU is blocked until result is ready:
 	 */
 	if((LL_CORDIC_GetInSize(cordic) == LL_CORDIC_INSIZE_32BITS) &&
 	   (LL_CORDIC_GetNbWrite(cordic) == LL_CORDIC_NBWRITE_2)) {
@@ -461,7 +481,8 @@ static int stm32_cordic_calculate(const struct device *dev,
 	for(uint32_t i = 0;
 	    (i < ARRAY_SIZE(tmp_result)) || (LL_CORDIC_IsActiveFlag_RRDY(cordic) == 1);
 	    i++) {
-		tmp_result[i] = (uint32_t)LL_CORDIC_ReadData(cordic);
+		/* Scale by 2^n (n - scale factor from CORDIC_CSR.NSCALE) */
+		tmp_result[i] = ((uint32_t)LL_CORDIC_ReadData(cordic)) / sc_2_power_n;
 	}
 
 	if (LL_CORDIC_GetOutSize(cordic) == LL_CORDIC_OUTSIZE_32BITS) {
@@ -478,11 +499,9 @@ static int stm32_cordic_calculate(const struct device *dev,
 		}
 	}
 
-	if (arg_out_float != NULL) {
-		ret = stm32_cordic_result_to_float(dev, arg_out, arg_out_float, arg_out_len);
-		if(ret < 0) {
-			return ret;
-		}
+	ret = stm32_cordic_result_to_float(dev, arg_out, arg_out_float, arg_out_len);
+	if(ret < 0) {
+		return ret;
 	}
 
 	/* TODO: Implement interrupt and DMA (streaming) modes */

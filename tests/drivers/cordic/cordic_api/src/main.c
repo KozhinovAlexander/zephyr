@@ -202,6 +202,7 @@ static inline void run_function_test(const cordic_run_config_t *const run_cfg)
 	const char* out_width_str = run_cfg->config.out_width == CORDIC_DATA_WIDTH_32BIT ? "Q1.31" : "Q1.15";
 
 	for (size_t i = 0; i < run_cfg->size; i++) {
+		/* TODO: Handle 1 or 2 possible arguments */
 		q31_t args[2] = {
 			float_to_int(run_cfg->args1[i], run_cfg->config.out_width),
 			float_to_int(run_cfg->args2[i], run_cfg->config.out_width)
@@ -286,8 +287,8 @@ ZTEST(cordic_api, test_modulus)
  */
 ZTEST(cordic_api, test_squareroot)
 {
-	const float32_t args1[] = {0.25f, 0.75f};
-	const float32_t exp_res1[] = {0.5f, 0.866025f};
+	const float32_t args1[] = {0.027f, 0.25f, 0.74f};
+	const float32_t exp_res1[] = {0.164317f, 0.5f, 0.86023f};
 
 	/* A test for q31_t format */
 	cordic_run_config_t run_cfg = {
@@ -314,6 +315,41 @@ ZTEST(cordic_api, test_squareroot)
 	run_cfg.config.out_width = CORDIC_DATA_WIDTH_16BIT;
 	run_function_test(&run_cfg);
 }
+
+/**
+ * @brief Test CORDIC Natural Logarithm function
+ */
+ZTEST(cordic_api, test_natural_log)
+{
+	const float32_t args1[] = {0.054f, 0.19f, 0.495f};
+	const float32_t exp_res1[] = {-2.91877f, -1.660731f, -0.703197516f};
+
+	/* A test for q31_t format */
+	cordic_run_config_t run_cfg = {
+		.dev = DEVICE_DT_GET(CORDIC_NODE),
+		.config = {
+			.function = CORDIC_FUNC_NATURALLOG,
+			.precision = CORDIC_PRECISION_15,
+			.scale = CORDIC_SCALE_VAL_1,
+			.in_width = CORDIC_DATA_WIDTH_32BIT,
+			.out_width = CORDIC_DATA_WIDTH_32BIT,
+		},
+		.args1 = args1,
+		.args2 = NULL,
+		.exp_res1 = exp_res1,
+		.exp_res2 = NULL,
+		.size = ARRAY_SIZE(args1),
+		.tolerance = TOLERANCE_F32,
+		.fn1_str = "ln(x)",
+	};
+	run_function_test(&run_cfg);
+
+	/* A test for q15_t format */
+	run_cfg.config.in_width = CORDIC_DATA_WIDTH_16BIT;
+	run_cfg.config.out_width = CORDIC_DATA_WIDTH_16BIT;
+	run_function_test(&run_cfg);
+}
+
 
 
 ZTEST_SUITE(cordic_api, NULL, cordic_setup, NULL, NULL, NULL);

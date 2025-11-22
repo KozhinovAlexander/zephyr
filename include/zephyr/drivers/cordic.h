@@ -126,11 +126,11 @@ typedef int (*cordic_api_configure_t)(const struct device *dev,
  * @see cordic_calculate() for argument descriptions
  */
 typedef int (*cordic_api_calculate_t)(const struct device *dev,
-				      int *arg_in,
+				      const int *arg_in,
 				      int *arg_out,
 				      float *arg_out_float,
-				      uint32_t arg_in_len,
-				      uint32_t arg_out_len);
+				      const uint32_t arg_in_len,
+				      const uint32_t arg_out_len);
 
 /**
  * @brief CORDIC driver API
@@ -202,18 +202,18 @@ static inline int z_impl_cordic_configure(const struct device *dev,
  * @retval -errno Negative errno code on failure
  */
 __syscall int cordic_calculate(const struct device *dev,
-			       int *arg_in,
+			       const int *arg_in,
 			       int *arg_out,
 			       float *arg_out_float,
-			       uint32_t arg_in_len,
-			       uint32_t arg_out_len);
+			       const uint32_t arg_in_len,
+			       const uint32_t arg_out_len);
 
 static inline int z_impl_cordic_calculate(const struct device *dev,
-					  int *arg_in,
+					  const int *arg_in,
 					  int *arg_out,
 					  float *arg_out_float,
-					  uint32_t arg_in_len,
-					  uint32_t arg_out_len)
+					  const uint32_t arg_in_len,
+					  const uint32_t arg_out_len)
 {
 	const struct cordic_driver_api *api =
 		(const struct cordic_driver_api *)dev->api;
