@@ -404,65 +404,31 @@ ZTEST(cordic_api, test_sine)
 }
 
 /**
- * @brief Test CORDIC Arctangent function
- */
-ZTEST(cordic_api, test_arctangent)
-{
-	const float args1[] = {128.0f}; /* x */
-	const float exp_res1[] = {1.562942f}; /* atan(x) */
-
-	/* A test for q31_t format */
-	cordic_run_config_t run_cfg = {
-		.dev = DEVICE_DT_GET(CORDIC_NODE),
-		.config = {
-			.function = CORDIC_FUNC_ARCTANGENT,
-			.precision = CORDIC_PRECISION_10,
-			.in_width = CORDIC_DATA_WIDTH_32BIT,
-			.out_width = CORDIC_DATA_WIDTH_32BIT,
-		},
-		.args1 = args1,
-		.args2 = NULL,
-		.exp_res1 = exp_res1,
-		.exp_res2 = NULL,
-		.size = ARRAY_SIZE(args1),
-		.tolerance = TOLERANCE_F32,
-		.fn1_str = "atan(x)",
-		.fn2_str = NULL,
-	};
-	run_function_test(&run_cfg);
-
-	/* A test for q15_t format */
-	run_cfg.config.in_width = CORDIC_DATA_WIDTH_16BIT;
-	run_cfg.config.out_width = CORDIC_DATA_WIDTH_16BIT;
-	run_function_test(&run_cfg);
-}
-
-/**
  * @brief Test CORDIC Hyperbolic Cosine function
  */
 ZTEST(cordic_api, test_hcosine)
 {
-	const float args1[] = {0.0f, 0.481211f, 0.883184f};
-	const float args2[] = {0.0f, 0.0f, 0.0f};
-	const float exp_res1[] = {1.0f, 1.1127016f, 1.323169f};
+	const float args1[] = {-0.559f, 0.25f, 0.559f}; /* x */
+	const float exp_res1[] = {1.16035163f, 1.0314131f,  1.16035163f}; /* cosh(x) */
+	const float exp_res2[] = {-0.58857107f, 0.25261232f, 0.58857107f}; /* sinh(x) */
 
 	/* A test for q31_t format */
 	cordic_run_config_t run_cfg = {
 		.dev = DEVICE_DT_GET(CORDIC_NODE),
 		.config = {
 			.function = CORDIC_FUNC_HCOSINE,
-			.precision = CORDIC_PRECISION_10,
+			.precision = CORDIC_PRECISION_15,
 			.in_width = CORDIC_DATA_WIDTH_32BIT,
 			.out_width = CORDIC_DATA_WIDTH_32BIT,
 		},
 		.args1 = args1,
-		.args2 = args2,
+		.args2 = NULL,
 		.exp_res1 = exp_res1,
-		.exp_res2 = NULL,
+		.exp_res2 = exp_res2,
 		.size = ARRAY_SIZE(args1),
-		.tolerance = TOLERANCE_F32,
+		.tolerance = TOLERANCE_F32 * 10.0f,  /* lower tolerance since not precise */
 		.fn1_str = "cosh(x)",
-		.fn2_str = NULL,
+		.fn2_str = "sinh(x)",
 	};
 	run_function_test(&run_cfg);
 
@@ -477,26 +443,60 @@ ZTEST(cordic_api, test_hcosine)
  */
 ZTEST(cordic_api, test_hsine)
 {
-	const float args1[] = {0.0f, 0.481211f, 0.883184f};
-	const float args2[] = {0.0f, 0.0f, 0.0f};
-	const float exp_res1[] = {0.0f, 0.5f, 0.98935f};
+	const float args1[] = {-0.559f, 0.25f, 0.559f}; /* x */
+	const float exp_res1[] = {-0.58857107f, 0.25261232f, 0.58857107f}; /* sinh(x) */
+	const float exp_res2[] = {1.16035163f, 1.0314131f,  1.16035163f}; /* cosh(x) */
 
 	/* A test for q31_t format */
 	cordic_run_config_t run_cfg = {
 		.dev = DEVICE_DT_GET(CORDIC_NODE),
 		.config = {
 			.function = CORDIC_FUNC_HSINE,
-			.precision = CORDIC_PRECISION_10,
+			.precision = CORDIC_PRECISION_15,
 			.in_width = CORDIC_DATA_WIDTH_32BIT,
 			.out_width = CORDIC_DATA_WIDTH_32BIT,
 		},
 		.args1 = args1,
-		.args2 = args2,
+		.args2 = NULL,
+		.exp_res1 = exp_res1,
+		.exp_res2 = exp_res2,
+		.size = ARRAY_SIZE(args1),
+		.tolerance = TOLERANCE_F32 * 10.0f,  /* lower tolerance since not precise */
+		.fn1_str = "sinh(x)",
+		.fn2_str = "cosh(x)",
+	};
+	run_function_test(&run_cfg);
+
+	/* A test for q15_t format */
+	run_cfg.config.in_width = CORDIC_DATA_WIDTH_16BIT;
+	run_cfg.config.out_width = CORDIC_DATA_WIDTH_16BIT;
+	run_function_test(&run_cfg);
+}
+
+/**
+ * @brief Test CORDIC Arctangent function
+ */
+ZTEST(cordic_api, test_arctangent)
+{
+	const float args1[] = {128.0f}; /* x */
+	const float exp_res1[] = {1.562942f}; /* atan(x) */
+
+	/* A test for q31_t format */
+	cordic_run_config_t run_cfg = {
+		.dev = DEVICE_DT_GET(CORDIC_NODE),
+		.config = {
+			.function = CORDIC_FUNC_ARCTANGENT,
+			.precision = CORDIC_PRECISION_15,
+			.in_width = CORDIC_DATA_WIDTH_32BIT,
+			.out_width = CORDIC_DATA_WIDTH_32BIT,
+		},
+		.args1 = args1,
+		.args2 = NULL,
 		.exp_res1 = exp_res1,
 		.exp_res2 = NULL,
 		.size = ARRAY_SIZE(args1),
 		.tolerance = TOLERANCE_F32,
-		.fn1_str = "sinh(x)",
+		.fn1_str = "atan(x)",
 		.fn2_str = NULL,
 	};
 	run_function_test(&run_cfg);

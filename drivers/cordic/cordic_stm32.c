@@ -341,9 +341,9 @@ static int stm32_cordic_input_arg_to_int(const CORDIC_TypeDef *cordic,
 	/* TODO: Scale depending on function type and allowed range */
 
 	/* Apply scaling and convert to int */
+	const float scf_n = 1.0f / ((float)(1 << n)); /* float scaling factor */
 	for (uint32_t i = 0; i < length; i++) {
-		/* Scale by 2^-n*/
-		tmp_float_val[i] = float_val[i] / ((float)(1 << n));
+		tmp_float_val[i] = float_val[i] * scf_n;
 	}
 
 	switch(fn) {
@@ -388,7 +388,7 @@ static int stm32_cordic_result_to_float(const CORDIC_TypeDef *cordic,
 {
 	const uint32_t fn = LL_CORDIC_GetFunction(cordic);
 	const uint32_t out_width = LL_CORDIC_GetOutSize(cordic);
-	const uint32_t n = LL_CORDIC_GetScale(cordic) >> 8; /* scale factor */
+	uint32_t n = LL_CORDIC_GetScale(cordic) >> 8; /* scale factor */
 	int ret = 0;
 
 	if (out_width == LL_CORDIC_OUTSIZE_16BITS) {
@@ -411,7 +411,6 @@ static int stm32_cordic_result_to_float(const CORDIC_TypeDef *cordic,
 
 	switch(fn) {
 		case LL_CORDIC_FUNCTION_COSINE:
-			break;
 		case LL_CORDIC_FUNCTION_SINE:
 			break;
 		case LL_CORDIC_FUNCTION_PHASE:
@@ -434,6 +433,8 @@ static int stm32_cordic_result_to_float(const CORDIC_TypeDef *cordic,
 		case LL_CORDIC_FUNCTION_HARCTANGENT:
 			break;
 		case LL_CORDIC_FUNCTION_NATURALLOG:
+			/* RES1 must be multiplied by 2^(n+1) RM0440 Rev 9 pp. 467/2140 */
+			n++;
 			break;
 		case LL_CORDIC_FUNCTION_SQUAREROOT:
 			break;
@@ -444,11 +445,9 @@ static int stm32_cordic_result_to_float(const CORDIC_TypeDef *cordic,
 	}
 
 	/* Apply scaling to the results */
-	if (n > 0) {
-		for (uint32_t i = 0; i < length; i++) {
-			/* Scale by 2^(n + 1)*/
-			float_val[i] = float_val[i] * ((float)(1 << (n + 1)));
-		}
+	const float scf_n = (float)(1 << n); /* floating point scale factor */
+	for (uint32_t i = 0; i < length; i++) {
+		float_val[i] *= scf_n;
 	}
 
 	return ret;
